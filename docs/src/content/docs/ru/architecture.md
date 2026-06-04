@@ -67,7 +67,7 @@ JSON-RPC `-32602`).
 
 | Адаптер | Стиль | Лучше всего для |
 | ------- | ----- | --------------- |
-| **REST** (`@sharptown/fastify` → `server-rest`) | `multipart`-загрузка, бинарный ответ | Веб-приложения, CDN, `curl`, JS-клиент. |
+| **REST** (`@sharptown/fastify-plugin` → `server-rest`) | `multipart`-загрузка, бинарный ответ | Веб-приложения, CDN, `curl`, JS-клиент. |
 | **gRPC** (`server-grpc`) | Двунаправленный стриминг | Огромные файлы, межсервисное взаимодействие, backpressure. |
 | **JSON-RPC** (`server-jsonrpc`) | JSON-RPC 2.0 поверх WebSocket, base64 | Приложения с постоянным сокетом, батчинг, уведомления. |
 

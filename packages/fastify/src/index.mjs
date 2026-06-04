@@ -22,7 +22,7 @@ import { readFirstFile } from './extract-file.mjs'
  *
  * @example
  * import Fastify from 'fastify'
- * import sharptown from '@sharptown/fastify'
+ * import sharptown from '@sharptown/fastify-plugin'
  *
  * const app = Fastify()
  * await app.register(sharptown, { prefix: '/api/v1' })
@@ -57,6 +57,6 @@ async function sharptownFastify(app, options) {
 }
 
 export default fp(sharptownFastify, {
-  name: '@sharptown/fastify',
+  name: '@sharptown/fastify-plugin',
   fastify: '5.x',
 })

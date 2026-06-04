@@ -1,4 +1,4 @@
-# @sharptown/fastify
+# @sharptown/fastify-plugin
 
 A [Fastify](https://fastify.dev) plugin that exposes Sharptown's image transform over a
 single REST route, built on [`@sharptown/core`](../core). It is a thin adapter: file
@@ -7,14 +7,14 @@ extraction + response wiring only — all imaging lives in the core.
 ## Install
 
 ```bash
-pnpm add @sharptown/fastify fastify
+pnpm add @sharptown/fastify-plugin fastify
 ```
 
 ## Usage
 
 ```js
 import Fastify from 'fastify'
-import sharptown from '@sharptown/fastify'
+import sharptown from '@sharptown/fastify-plugin'
 
 const app = Fastify()
 await app.register(sharptown, { prefix: '/api/v1' }) // prefix is optional

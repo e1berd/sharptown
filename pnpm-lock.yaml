@@ -119,7 +119,7 @@ importers:
       '@mgcrea/pino-pretty-compact':
         specifier: ^1.4.2
         version: 1.6.0
-      '@sharptown/fastify':
+      '@sharptown/fastify-plugin':
         specifier: workspace:*
         version: link:../fastify
       fastify:

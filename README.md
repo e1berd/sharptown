@@ -12,7 +12,7 @@ This is a [pnpm](https://pnpm.io) workspace:
 | Package | Path | Description |
 | ------- | ---- | ----------- |
 | `@sharptown/core` | [`packages/core`](packages/core) | Framework-agnostic Sharp engine — shared by every adapter |
-| `@sharptown/fastify` | [`packages/fastify`](packages/fastify) | Fastify plugin (REST `/transform`) on top of core |
+| `@sharptown/fastify-plugin` | [`packages/fastify`](packages/fastify) | Fastify plugin (REST `/transform`) on top of core |
 | `@sharptown/client` | [`packages/client`](packages/client) | Expressive isomorphic JS client (browser / Node / Bun / Deno) |
 | `@sharptown/server-rest` | [`packages/server-rest`](packages/server-rest) | REST host (Fastify + plugin + static UI) |
 | `@sharptown/server-grpc` | [`packages/server-grpc`](packages/server-grpc) | gRPC streaming host |
@@ -192,12 +192,12 @@ On error → JSON
 ```
 
 ## 🔌 Fastify Plugin Usage
-The REST transform is shipped as a standalone Fastify plugin, [`@sharptown/fastify`](packages/fastify),
+The REST transform is shipped as a standalone Fastify plugin, [`@sharptown/fastify-plugin`](packages/fastify),
 on top of the framework-agnostic [`@sharptown/core`](packages/core) engine:
 
 ```js
 import Fastify from 'fastify'
-import sharptown from '@sharptown/fastify'
+import sharptown from '@sharptown/fastify-plugin'
 
 const app = Fastify()
 await app.register(sharptown, { prefix: '/api/v1' })

@@ -7,7 +7,7 @@ order: 2
 
 # Плагин Fastify
 
-REST-трансформация поставляется отдельным плагином Fastify — `@sharptown/fastify`,
+REST-трансформация поставляется отдельным плагином Fastify — `@sharptown/fastify-plugin`,
 построенным поверх движка `@sharptown/core`, не зависящего от фреймворка. Подключите его в
 любое приложение Fastify, чтобы получить маршрут `POST /transform`.
 
@@ -15,7 +15,7 @@ REST-трансформация поставляется отдельным пл
 
 ```js
 import Fastify from 'fastify'
-import sharptown from '@sharptown/fastify'
+import sharptown from '@sharptown/fastify-plugin'
 
 const app = Fastify()
 await app.register(sharptown, { prefix: '/api/v1' })

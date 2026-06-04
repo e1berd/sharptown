@@ -13,7 +13,7 @@
     "@fastify/static": "^8.3.0",
     "@mgcrea/fastify-request-logger": "^1.9.1",
     "@mgcrea/pino-pretty-compact": "^1.4.2",
-    "@sharptown/fastify": "workspace:*",
+    "@sharptown/fastify-plugin": "workspace:*",
     "fastify": "^5.0.0"
   }
 }

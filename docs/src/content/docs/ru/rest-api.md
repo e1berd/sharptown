@@ -11,7 +11,7 @@ order: 1
 `multipart/form-data`, передайте операции через параметры запроса и получите обратно
 трансформированный бинарный файл.
 
-Его обслуживает `@sharptown/server-rest` (Fastify + плагин `@sharptown/fastify` +
+Его обслуживает `@sharptown/server-rest` (Fastify + плагин `@sharptown/fastify-plugin` +
 статический UI) на порту **3001** по умолчанию.
 
 ## Трансформация изображения

@@ -63,7 +63,7 @@ error convention (HTTP 400, gRPC `INVALID_ARGUMENT`, JSON-RPC `-32602`).
 
 | Adapter | Style | Best for |
 | ------- | ----- | -------- |
-| **REST** (`@sharptown/fastify` → `server-rest`) | `multipart` upload, binary response | Web apps, CDNs, `curl`, the JS client. |
+| **REST** (`@sharptown/fastify-plugin` → `server-rest`) | `multipart` upload, binary response | Web apps, CDNs, `curl`, the JS client. |
 | **gRPC** (`server-grpc`) | Bidirectional streaming | Huge files, service-to-service, backpressure. |
 | **JSON-RPC** (`server-jsonrpc`) | JSON-RPC 2.0 over WebSocket, base64 | Persistent socket apps, batching, notifications. |
 

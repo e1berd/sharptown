@@ -10,7 +10,7 @@ order: 1
 The REST transport is the default and the simplest: upload an image as `multipart/form-data`,
 pass operations as query parameters, get the transformed binary back.
 
-It is served by `@sharptown/server-rest` (Fastify + the `@sharptown/fastify` plugin +
+It is served by `@sharptown/server-rest` (Fastify + the `@sharptown/fastify-plugin` plugin +
 a static UI) on port **3001** by default.
 
 ## Transform an image

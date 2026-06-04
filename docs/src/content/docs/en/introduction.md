@@ -12,10 +12,10 @@ order: 1
 It lets you **resize, rotate, blur, grayscale, tint, control alpha, and convert formats**
 — all on the fly through a simple API.
 
-## Why Sharptown exists
+## Why Sharptown?
 
-The primary goal is dead simple: **let users easily turn their photos into an optimized
-format** — for example `webp` or `avif` — so images ship fewer bytes over the wire.
+The primary goal is simple: **turn images into an optimized format** — for example `webp`
+or `avif` — so they ship fewer bytes over the wire.
 
 In other words, the core purpose is **image delivery optimization**:
 
@@ -54,7 +54,7 @@ See [Building a photo editor](/docs/building-an-editor) for a worked example.
 | Package | Role |
 | ------- | ---- |
 | `@sharptown/core` | Framework-agnostic Sharp engine, shared by every adapter. |
-| `@sharptown/fastify` | Fastify plugin exposing `POST /transform`. |
+| `@sharptown/fastify-plugin` | Fastify plugin exposing `POST /transform`. |
 | `@sharptown/client` | Expressive isomorphic JS client (browser / Node / Bun / Deno). |
 | `@sharptown/server-rest` | REST host (Fastify + plugin + static UI). |
 | `@sharptown/server-grpc` | gRPC bidirectional-streaming host. |

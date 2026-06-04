@@ -45,7 +45,7 @@ An adapter only has to:
 3. Send `data` with the returned `contentType`.
 4. Map `InvalidOperationError` to a client error (HTTP 400, gRPC `INVALID_ARGUMENT`, JSON-RPC `-32602`).
 
-That contract is exactly how `@sharptown/fastify`, `@sharptown/server-grpc` and
+That contract is exactly how `@sharptown/fastify-plugin`, `@sharptown/server-grpc` and
 `@sharptown/server-jsonrpc` are implemented.
 
 ## License

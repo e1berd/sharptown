@@ -7,7 +7,7 @@ order: 2
 
 # Fastify Plugin
 
-The REST transform ships as a standalone Fastify plugin, `@sharptown/fastify`, built on
+The REST transform ships as a standalone Fastify plugin, `@sharptown/fastify-plugin`, built on
 top of the framework-agnostic `@sharptown/core` engine. Register it into any Fastify app
 to get a `POST /transform` route.
 
@@ -15,7 +15,7 @@ to get a `POST /transform` route.
 
 ```js
 import Fastify from 'fastify'
-import sharptown from '@sharptown/fastify'
+import sharptown from '@sharptown/fastify-plugin'
 
 const app = Fastify()
 await app.register(sharptown, { prefix: '/api/v1' })

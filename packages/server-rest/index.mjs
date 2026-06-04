@@ -2,7 +2,7 @@ import Fastify from 'fastify'
 import { env } from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
-import sharptown from '@sharptown/fastify'
+import sharptown from '@sharptown/fastify-plugin'
 
 const port = parseInt(env.SHARPTOWN_PORT || '3001')
 const host = env.SHARPTOWN_HOST || '0.0.0.0'

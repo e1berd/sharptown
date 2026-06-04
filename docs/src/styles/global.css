@@ -132,6 +132,16 @@ pre {
 }
 pre code { background: none; border: 0; padding: 0; }
 
+/*
+ * Shiki dual-theme. The inline token styles default to the light (github-light) palette
+ * and stash the dark color in `--shiki-dark`. In dark mode we swap to those, so code is
+ * readable; the background stays our own angular code surface.
+ */
+:root[data-theme="dark"] .astro-code,
+:root[data-theme="dark"] .astro-code span {
+  color: var(--shiki-dark, currentColor) !important;
+}
+
 hr {
   border: 0;
   border-top: var(--st-border-w) dashed var(--st-border-strong);

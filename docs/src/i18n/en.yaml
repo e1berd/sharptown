@@ -31,16 +31,15 @@ groups:
   Operations: Operations
 
 home:
-  meta_description: Sharptown — high-performance image transformation & delivery.
+  meta_description: Sharptown — self-hosted image transformation service built on Fastify and Sharp.
   tag: Image transformation engine
-  title_before: 'Make your photos '
-  title_highlight: web-fast
+  title_before: 'Self-hosted '
+  title_highlight: image transformation
   title_after: .
   lead_html: >-
-    Sharptown turns any photo into an optimized format like <code>webp</code> in a single
-    request. At its core it is about <strong>image delivery optimization</strong> — but
-    with a running server and the JS client, you can build a complete in-browser photo
-    editor on top.
+    Resize, convert and optimize images over REST, gRPC or JSON-RPC. A framework-agnostic
+    core built on <code>Sharp</code>, a Fastify plugin, and an isomorphic JS client — run it
+    yourself, in front of your own image delivery.
   cta_docs: Read the docs →
   cta_playground: Open playground
   band:
@@ -68,12 +67,11 @@ home:
     - mark: ▤
       title: Drop-in plugin
       body: Ship the transform route into any Fastify app with one register() call, or write a thin adapter for Hono, Elysia or Express.
-  cta_title: From CDN to full editor.
+  cta_title: Start here
   cta_body: >-
-    Start by shaving bytes off your image delivery. When you are ready, the same server and
-    client become the backbone of an interactive editor.
+    Install the workspace, run a server, and call it from curl or the JS client.
   cta_get_started: Get started
-  cta_build_editor: Build an editor
+  cta_build_editor: Building an editor
 
 playground_page:
   meta_description: Build a Sharptown transform chain and run it against your server, right in the browser.
