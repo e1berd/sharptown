@@ -41,6 +41,37 @@ message TransformOptions {
   bool            remove_alpha = 10;
   bool            ensure_alpha = 11;
   string          convert_to   = 12; // webp/png/jpg/jpeg/avif/gif/heif; empty = keep
+
+  // Resize & crop
+  string          crop          = 13; // "x,y,w,h" or "WxH"
+  string          crop_offset   = 14; // "x,y" for the "WxH" form
+  bool            smart_crop    = 15;
+  string          fit           = 16; // cover/contain/fill/inside/outside
+  string          background    = 17;
+  bool            auto_orient   = 18;
+  optional double dpr           = 19;
+  optional double aspect_ratio  = 20;
+
+  // Tone & color
+  optional double brightness    = 21; // -100..100
+  optional double contrast      = 22; // -100..100
+  optional double saturation    = 23; // 0..2
+  optional double exposure      = 24; // EV -3..3
+  optional double hue           = 25; // 0..360
+  optional double gamma         = 26; // 1.0..3.0
+  string          colorize      = 27;
+
+  // Filters
+  optional double sepia         = 28; // 0..1
+  bool            invert        = 29;
+  optional uint32 threshold     = 30; // 0..255
+  optional double sharpen       = 31; // 0..5
+  optional uint32 oil_paint     = 32;
+
+  // Output
+  optional uint32 quality        = 33; // 1..100
+  bool            progressive    = 34;
+  optional bool   strip_metadata = 35; // unset = strip; false = keep
 }
 
 message TransformRequest {
@@ -55,8 +86,9 @@ message TransformResponse {
 }
 ```
 
-`TransformOptions` is at parity with REST `/api/v1/transform` — the field names just use
-the proto convention (`tint_r`, `remove_alpha`, `convert_to`).
+`TransformOptions` is at full parity with REST `/api/v1/transform` and the JS client — the
+field names just use the proto convention (`tint_r`, `smart_crop`, `convert_to`). Every
+parameter is described in the [Operations reference](/docs/operations).
 
 ## The streaming protocol
 

@@ -2,6 +2,16 @@ import * as grpc from '@grpc/grpc-js'
 import { createTransformStream, InvalidOperationError } from '@sharptown/core'
 
 /**
+ * Treats proto-loader's empty-string default for unset string fields as "absent".
+ *
+ * @param {unknown} value
+ * @returns {string | undefined}
+ */
+function presentString(value) {
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+/**
  * Maps proto `TransformOptions` (camelCase from proto-loader) to the options object
  * understood by `@sharptown/core`.
  *
@@ -12,16 +22,39 @@ function mapOptions(o = {}) {
   return {
     width: o.width,
     height: o.height,
+    dpr: o.dpr,
+    aspectRatio: o.aspectRatio,
+    fit: presentString(o.fit),
+    background: presentString(o.background),
+    smartCrop: o.smartCrop,
+    crop: presentString(o.crop),
+    cropOffset: presentString(o.cropOffset),
+    autoOrient: o.autoOrient,
     rotate: o.rotate,
     flip: o.flip,
     blur: o.blur,
+    sharpen: o.sharpen,
+    oilPaint: o.oilPaint,
+    brightness: o.brightness,
+    contrast: o.contrast,
+    saturation: o.saturation,
+    exposure: o.exposure,
+    hue: o.hue,
+    gamma: o.gamma,
+    colorize: presentString(o.colorize),
+    sepia: o.sepia,
+    invert: o.invert,
+    threshold: o.threshold,
     r: o.tintR,
     g: o.tintG,
     b: o.tintB,
     grayscale: o.grayscale,
     removeAlpha: o.removeAlpha,
     ensureAlpha: o.ensureAlpha,
-    convertTo: o.convertTo,
+    convertTo: presentString(o.convertTo),
+    quality: o.quality,
+    progressive: o.progressive,
+    stripMetadata: o.stripMetadata,
   }
 }
 

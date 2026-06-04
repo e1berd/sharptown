@@ -1,8 +1,11 @@
 import {
   toInt,
+  toNumber,
+  toRange,
   toColor,
   toPositiveInt,
   assertFormat,
+  assertFit,
 } from './operations.mjs'
 
 /**
@@ -74,6 +77,103 @@ export class TransformBuilder {
     return this
   }
 
+  /**
+   * Crops a rectangle. Accepts `(x, y, width, height)` or an object
+   * `{ left, top, width, height }`.
+   * @param {number | { left?: number, top?: number, width: number, height: number }} x
+   * @param {number} [y]
+   * @param {number} [width]
+   * @param {number} [height]
+   * @returns {this}
+   *
+   * @example
+   * st.transform(file).crop(10, 20, 300, 200)
+   * st.transform(file).crop({ left: 10, top: 20, width: 300, height: 200 })
+   */
+  crop(x, y, width, height) {
+    if (typeof x === 'object' && x !== null) {
+      const left = toPositiveInt(x.left ?? 0, 'crop.left')
+      const top = toPositiveInt(x.top ?? 0, 'crop.top')
+      const w = toPositiveInt(x.width, 'crop.width')
+      const h = toPositiveInt(x.height, 'crop.height')
+      this.#ops.crop = `${left},${top},${w},${h}`
+      return this
+    }
+    this.#ops.crop = [
+      toPositiveInt(x, 'crop.x'),
+      toPositiveInt(y, 'crop.y'),
+      toPositiveInt(width, 'crop.width'),
+      toPositiveInt(height, 'crop.height'),
+    ].join(',')
+    return this
+  }
+
+  /**
+   * Crops to the most salient region (faces, contrast) when resizing. Combine with a
+   * target `width`/`height`.
+   * @param {boolean} [enabled=true]
+   * @returns {this}
+   *
+   * @example
+   * st.transform(file).resize(200, 200).smartCrop()
+   */
+  smartCrop(enabled = true) {
+    this.#ops.smartCrop = Boolean(enabled)
+    return this
+  }
+
+  /**
+   * Sets the resize fit mode: `cover`, `contain`, `fill`, `inside`, `outside`.
+   * @param {string} mode
+   * @returns {this}
+   */
+  fit(mode) {
+    this.#ops.fit = assertFit(String(mode).toLowerCase())
+    return this
+  }
+
+  /**
+   * Background colour used by `fit: 'contain'` (e.g. `white`, `#000`, `rgba(0,0,0,0)`).
+   * @param {string} color
+   * @returns {this}
+   */
+  background(color) {
+    this.#ops.background = String(color)
+    return this
+  }
+
+  /**
+   * Device pixel ratio; multiplies the target `width`/`height` for retina screens.
+   * @param {number} value
+   * @returns {this}
+   *
+   * @example
+   * st.transform(file).width(400).dpr(2) // renders at 800px
+   */
+  dpr(value) {
+    this.#ops.dpr = toRange(value, 'dpr', 0.1, 5)
+    return this
+  }
+
+  /**
+   * Target aspect ratio (width / height). Combine with a `width` or `height`.
+   * @param {number} ratio
+   * @returns {this}
+   *
+   * @example
+   * st.transform(file).width(1600).aspectRatio(16 / 9)
+   */
+  aspectRatio(ratio) {
+    this.#ops.aspectRatio = toRange(ratio, 'aspectRatio', 0.0001, 1000)
+    return this
+  }
+
+  /** Rotates according to the EXIF orientation tag. @param {boolean} [enabled=true] @returns {this} */
+  autoOrient(enabled = true) {
+    this.#ops.autoOrient = Boolean(enabled)
+    return this
+  }
+
   /** Rotates by the given degrees. @param {number} degrees @returns {this} */
   rotate(degrees) {
     this.#ops.rotate = toInt(degrees, 'rotate')
@@ -136,6 +236,116 @@ export class TransformBuilder {
   /** Ensures an alpha channel exists. @param {boolean} [enabled=true] @returns {this} */
   ensureAlpha(enabled = true) {
     this.#ops.ensureAlpha = Boolean(enabled)
+    return this
+  }
+
+  /** Adjusts brightness, `-100`–`100`. @param {number} value @returns {this} */
+  brightness(value) {
+    this.#ops.brightness = toRange(value, 'brightness', -100, 100)
+    return this
+  }
+
+  /** Adjusts contrast, `-100`–`100`. @param {number} value @returns {this} */
+  contrast(value) {
+    this.#ops.contrast = toRange(value, 'contrast', -100, 100)
+    return this
+  }
+
+  /** Adjusts saturation, `0`–`2` (`1` is the original). @param {number} value @returns {this} */
+  saturation(value) {
+    this.#ops.saturation = toRange(value, 'saturation', 0, 2)
+    return this
+  }
+
+  /** Adjusts exposure in EV stops, `-3`–`3`. @param {number} value @returns {this} */
+  exposure(value) {
+    this.#ops.exposure = toRange(value, 'exposure', -3, 3)
+    return this
+  }
+
+  /** Rotates hue in degrees, `0`–`360`. @param {number} value @returns {this} */
+  hue(value) {
+    this.#ops.hue = toRange(value, 'hue', 0, 360)
+    return this
+  }
+
+  /** Gamma correction, `1.0`–`3.0`. @param {number} value @returns {this} */
+  gamma(value) {
+    this.#ops.gamma = toRange(value, 'gamma', 1, 3)
+    return this
+  }
+
+  /**
+   * Maps the image to shades of one colour (greyscale + tint).
+   * @param {string} color
+   * @returns {this}
+   */
+  colorize(color) {
+    this.#ops.colorize = String(color)
+    return this
+  }
+
+  /**
+   * Applies a sepia tone. Intensity `0`–`1`, defaulting to full sepia.
+   * @param {number} [intensity=1]
+   * @returns {this}
+   */
+  sepia(intensity = 1) {
+    this.#ops.sepia = toRange(intensity, 'sepia', 0, 1)
+    return this
+  }
+
+  /** Inverts colours. @param {boolean} [enabled=true] @returns {this} */
+  invert(enabled = true) {
+    this.#ops.invert = Boolean(enabled)
+    return this
+  }
+
+  /** Binarises the image at the given threshold, `0`–`255`. @param {number} value @returns {this} */
+  threshold(value) {
+    this.#ops.threshold = toRange(value, 'threshold', 0, 255)
+    return this
+  }
+
+  /**
+   * Sharpens the image. With no argument uses the default; otherwise sets the sigma `0`–`5`.
+   * @param {number} [sigma]
+   * @returns {this}
+   */
+  sharpen(sigma) {
+    this.#ops.sharpen = sigma == null ? true : toRange(sigma, 'sharpen', 0, 5)
+    return this
+  }
+
+  /**
+   * Oil-paint effect via a median filter; the value is the window size (`1`–`25`).
+   * @param {number} [size=3]
+   * @returns {this}
+   */
+  oilPaint(size = 3) {
+    this.#ops.oilPaint = toRange(size, 'oilPaint', 1, 25)
+    return this
+  }
+
+  /** Output quality `1`–`100` (applies when re-encoding via {@link convert}). @param {number} value @returns {this} */
+  quality(value) {
+    this.#ops.quality = toRange(value, 'quality', 1, 100)
+    return this
+  }
+
+  /** Progressive (interlaced) output when re-encoding. @param {boolean} [enabled=true] @returns {this} */
+  progressive(enabled = true) {
+    this.#ops.progressive = Boolean(enabled)
+    return this
+  }
+
+  /**
+   * Strips EXIF/metadata (the default). Pass `false` to keep metadata.
+   * @param {boolean} [enabled=true]
+   * @returns {this}
+   */
+  stripMetadata(enabled = true) {
+    this.#ops.stripMetadata = Boolean(enabled)
     return this
   }
 

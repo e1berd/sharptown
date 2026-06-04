@@ -28,20 +28,21 @@ Content-Type: multipart/form-data
 
 ## Query parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| `width` | number | Resize width. |
-| `height` | number | Resize height. |
-| `rotate` | number | Rotate (degrees). |
-| `flip` | boolean | Flip horizontally. |
-| `blur` | number | Blur radius / sigma. |
-| `r`, `g`, `b` | number | RGB tint (0–255 each). |
-| `grayscale` / `greyscale` | boolean | Convert to grayscale. |
-| `removeAlpha` | boolean | Remove the alpha channel. |
-| `ensureAlpha` | boolean | Ensure an alpha channel. |
-| `convertTo` | string | Output format: `webp`, `png`, `jpg`, `jpeg`, `avif`, `gif`, `heif`. |
+Operations are passed as query-string parameters. The full set, grouped:
 
-Full details and validation rules live in the [Operations reference](/docs/operations).
+- **Resize & crop:** `width`, `height`, `dpr`, `aspectRatio`, `fit`, `background`, `smartCrop`, `crop`, `cropOffset`, `autoOrient`, `rotate`, `flip`.
+- **Tone & color:** `brightness`, `contrast`, `saturation`, `exposure`, `hue`, `gamma`, `colorize`, `r`, `g`, `b`, `grayscale`.
+- **Filters & effects:** `blur`, `sharpen`, `sepia`, `invert`, `threshold`, `oilPaint`.
+- **Alpha & output:** `removeAlpha`, `ensureAlpha`, `convertTo`, `quality`, `progressive`, `stripMetadata`.
+
+```bash
+curl -X POST -F "image=@input.jpg" \
+  "http://localhost:3001/api/v1/transform?width=800&aspectRatio=1.7778&smartCrop=true&saturation=1.2&convertTo=webp&quality=80" \
+  --output out.webp
+```
+
+Every parameter, its type, range and order of application — plus validation rules — lives
+in the [Operations reference](/docs/operations).
 
 ## Examples
 

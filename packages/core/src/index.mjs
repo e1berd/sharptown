@@ -14,6 +14,6 @@
  * })
  */
 
-export { applyOperations, InvalidOperationError, SUPPORTED_FORMATS } from './operations.mjs'
+export { applyOperations, InvalidOperationError, SUPPORTED_FORMATS, FIT_MODES } from './operations.mjs'
 export { transformBuffer, createTransformStream } from './transform.mjs'
 export { mimeTypeFor } from './mime.mjs'

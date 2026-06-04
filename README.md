@@ -31,13 +31,15 @@ The three transports are **independent server packages**, all sharing `@sharptow
 
 
 ## ✨ Features
-- Convert any supported format to any other (WebP, PNG, JPEG, GIF, AVIF…)
-- Resize: width / height
-- Rotate / Flip
-- Blur
-- Grayscale / Greyscale
-- RGB tint filter (r, g, b)
-- Alpha control: removeAlpha / ensureAlpha
+- Convert any supported format to any other (WebP, PNG, JPEG, GIF, AVIF, HEIF)
+- Resize: `width` / `height` / `dpr` / `aspectRatio`, with `fit` modes and `background`
+- Crop: `crop` (`x,y,w,h` or `WxH`+`cropOffset`) and attention-based `smartCrop`
+- Orientation: `autoOrient` (EXIF), `rotate`, `flip`
+- Tone & color: `brightness`, `contrast`, `saturation`, `exposure`, `hue`, `gamma`, `colorize`, RGB `tint`, `grayscale`
+- Filters & effects: `blur`, `sharpen`, `sepia`, `invert`, `threshold`, `oilPaint`
+- Output control: `quality`, `progressive`, `stripMetadata`
+- Alpha control: `removeAlpha` / `ensureAlpha`
+- Same operations across REST, gRPC and JSON-RPC
 - Docker-ready
 - Fully configurable via `.env`
 

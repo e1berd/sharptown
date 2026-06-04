@@ -29,20 +29,21 @@ Content-Type: multipart/form-data
 
 ## Параметры запроса
 
-| Имя | Тип | Описание |
-| --- | --- | -------- |
-| `width` | число | Ширина изменения размера. |
-| `height` | число | Высота изменения размера. |
-| `rotate` | число | Поворот (градусы). |
-| `flip` | булево | Отражение по горизонтали. |
-| `blur` | число | Радиус / сигма размытия. |
-| `r`, `g`, `b` | число | RGB-тонирование (0–255 каждый). |
-| `grayscale` / `greyscale` | булево | Преобразование в оттенки серого. |
-| `removeAlpha` | булево | Убрать альфа-канал. |
-| `ensureAlpha` | булево | Гарантировать альфа-канал. |
-| `convertTo` | строка | Формат вывода: `webp`, `png`, `jpg`, `jpeg`, `avif`, `gif`, `heif`. |
+Операции передаются параметрами строки запроса. Полный набор по группам:
 
-Полные детали и правила валидации — в [справочнике операций](/ru/docs/operations).
+- **Размер и кадрирование:** `width`, `height`, `dpr`, `aspectRatio`, `fit`, `background`, `smartCrop`, `crop`, `cropOffset`, `autoOrient`, `rotate`, `flip`.
+- **Тон и цвет:** `brightness`, `contrast`, `saturation`, `exposure`, `hue`, `gamma`, `colorize`, `r`, `g`, `b`, `grayscale`.
+- **Фильтры и эффекты:** `blur`, `sharpen`, `sepia`, `invert`, `threshold`, `oilPaint`.
+- **Альфа и вывод:** `removeAlpha`, `ensureAlpha`, `convertTo`, `quality`, `progressive`, `stripMetadata`.
+
+```bash
+curl -X POST -F "image=@input.jpg" \
+  "http://localhost:3001/api/v1/transform?width=800&aspectRatio=1.7778&smartCrop=true&saturation=1.2&convertTo=webp&quality=80" \
+  --output out.webp
+```
+
+Каждый параметр, его тип, диапазон и порядок применения, а также правила валидации — в
+[справочнике операций](/ru/docs/operations).
 
 ## Примеры
 

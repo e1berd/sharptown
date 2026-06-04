@@ -27,6 +27,37 @@ message TransformOptions {
   bool            ensure_alpha = 11;
   // Целевой формат: webp/png/jpg/jpeg/avif/gif/heif. Пусто — формат не меняется.
   string          convert_to   = 12;
+
+  // Геометрия и кадрирование.
+  string          crop          = 13; // "x,y,width,height" или "WxH"
+  string          crop_offset   = 14; // "x,y" для формы "WxH"
+  bool            smart_crop    = 15;
+  string          fit           = 16; // cover/contain/fill/inside/outside
+  string          background    = 17; // цвет фона для contain
+  bool            auto_orient   = 18;
+  optional double dpr           = 19;
+  optional double aspect_ratio  = 20;
+
+  // Тон и цвет.
+  optional double brightness    = 21; // -100..100
+  optional double contrast      = 22; // -100..100
+  optional double saturation    = 23; // 0..2
+  optional double exposure      = 24; // EV -3..3
+  optional double hue           = 25; // 0..360
+  optional double gamma         = 26; // 1.0..3.0
+  string          colorize      = 27;
+
+  // Фильтры.
+  optional double sepia         = 28; // 0..1
+  bool            invert        = 29;
+  optional uint32 threshold     = 30; // 0..255
+  optional double sharpen       = 31; // 0..5
+  optional uint32 oil_paint     = 32; // размер окна медианного фильтра
+
+  // Вывод.
+  optional uint32 quality        = 33; // 1..100
+  bool            progressive    = 34;
+  optional bool   strip_metadata = 35; // не задано — метаданные удаляются; false — сохраняются
 }
 
 message TransformRequest {

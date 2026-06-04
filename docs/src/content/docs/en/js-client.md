@@ -53,16 +53,50 @@ const blob = await st
 
 ### Operation methods
 
+Resize & crop:
+
 | Method | Description |
 | ------ | ----------- |
 | `.resize(width, height?)` | Resize. Also accepts `{ width, height }`. |
 | `.width(n)` / `.height(n)` | Set one dimension. |
+| `.crop(x, y, w, h)` | Crop a rectangle. Also accepts `{ left, top, width, height }`. |
+| `.smartCrop(enabled = true)` | Crop to the salient region when resizing. |
+| `.fit(mode)` | `cover` / `contain` / `fill` / `inside` / `outside`. |
+| `.background(color)` | Background for `fit: 'contain'`. |
+| `.dpr(value)` | Device pixel ratio; multiplies the target size. |
+| `.aspectRatio(ratio)` | Target ratio; combine with `.width()`/`.height()`. |
+| `.autoOrient(enabled = true)` | Rotate by EXIF orientation. |
 | `.rotate(deg)` | Rotate by degrees. |
 | `.flip(enabled = true)` | Flip horizontally. |
-| `.blur(sigma = 1)` | Gaussian blur. |
-| `.tint(r, g, b)` | Tint. Also accepts `{ r, g, b }`; each channel optional. |
+
+Tone, color & effects:
+
+| Method | Description |
+| ------ | ----------- |
+| `.brightness(n)` | Brightness `-100`–`100`. |
+| `.contrast(n)` | Contrast `-100`–`100`. |
+| `.saturation(n)` | Saturation `0`–`2`. |
+| `.exposure(n)` | Exposure in EV `-3`–`3`. |
+| `.hue(n)` | Hue rotation `0`–`360`. |
+| `.gamma(n)` | Gamma `1.0`–`3.0`. |
+| `.colorize(color)` | Map to shades of one colour. |
+| `.tint(r, g, b)` | Tint. Also accepts `{ r, g, b }`. |
 | `.grayscale(enabled = true)` | Desaturate (`.greyscale` is an alias). |
+| `.blur(sigma = 1)` | Gaussian blur. |
+| `.sharpen(sigma?)` | Sharpen; no argument uses the default. |
+| `.sepia(intensity = 1)` | Sepia `0`–`1`. |
+| `.invert(enabled = true)` | Invert colours. |
+| `.threshold(n)` | Binarise at `0`–`255`. |
+| `.oilPaint(size = 3)` | Oil-paint (median) effect. |
+
+Alpha & output:
+
+| Method | Description |
+| ------ | ----------- |
 | `.removeAlpha()` / `.ensureAlpha()` | Alpha control. |
+| `.quality(n)` | Output quality `1`–`100` (with `.convert()`). |
+| `.progressive(enabled = true)` | Progressive output. |
+| `.stripMetadata(enabled = true)` | Strip EXIF (default); `false` keeps it. |
 | `.convert(format)` | Output format (`.toFormat` is an alias). |
 | `.abortWith(signal)` | Attach an `AbortSignal`. |
 

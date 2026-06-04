@@ -53,16 +53,50 @@ const blob = await st
 
 ### Методы операций
 
+Размер и кадрирование:
+
 | Метод | Описание |
 | ----- | -------- |
 | `.resize(width, height?)` | Изменение размера. Также принимает `{ width, height }`. |
 | `.width(n)` / `.height(n)` | Задать одно измерение. |
+| `.crop(x, y, w, h)` | Обрезка прямоугольника. Также принимает `{ left, top, width, height }`. |
+| `.smartCrop(enabled = true)` | Обрезка к значимой области при ресайзе. |
+| `.fit(mode)` | `cover` / `contain` / `fill` / `inside` / `outside`. |
+| `.background(color)` | Фон для `fit: 'contain'`. |
+| `.dpr(value)` | Device pixel ratio; умножает целевой размер. |
+| `.aspectRatio(ratio)` | Целевое соотношение; вместе с `.width()`/`.height()`. |
+| `.autoOrient(enabled = true)` | Поворот по ориентации EXIF. |
 | `.rotate(deg)` | Поворот на градусы. |
 | `.flip(enabled = true)` | Отражение по горизонтали. |
-| `.blur(sigma = 1)` | Размытие по Гауссу. |
-| `.tint(r, g, b)` | Тонирование. Также принимает `{ r, g, b }`; каждый канал необязателен. |
+
+Тон, цвет и эффекты:
+
+| Метод | Описание |
+| ----- | -------- |
+| `.brightness(n)` | Яркость `-100`–`100`. |
+| `.contrast(n)` | Контраст `-100`–`100`. |
+| `.saturation(n)` | Насыщенность `0`–`2`. |
+| `.exposure(n)` | Экспозиция в EV `-3`–`3`. |
+| `.hue(n)` | Сдвиг оттенка `0`–`360`. |
+| `.gamma(n)` | Гамма `1.0`–`3.0`. |
+| `.colorize(color)` | Перевод в оттенки одного цвета. |
+| `.tint(r, g, b)` | Тонирование. Также принимает `{ r, g, b }`. |
 | `.grayscale(enabled = true)` | Обесцвечивание (`.greyscale` — синоним). |
+| `.blur(sigma = 1)` | Размытие по Гауссу. |
+| `.sharpen(sigma?)` | Резкость; без аргумента — значение по умолчанию. |
+| `.sepia(intensity = 1)` | Сепия `0`–`1`. |
+| `.invert(enabled = true)` | Инверсия цветов. |
+| `.threshold(n)` | Бинаризация по порогу `0`–`255`. |
+| `.oilPaint(size = 3)` | Эффект масляной краски (медиана). |
+
+Альфа и вывод:
+
+| Метод | Описание |
+| ----- | -------- |
 | `.removeAlpha()` / `.ensureAlpha()` | Управление альфа-каналом. |
+| `.quality(n)` | Качество вывода `1`–`100` (с `.convert()`). |
+| `.progressive(enabled = true)` | Прогрессивный вывод. |
+| `.stripMetadata(enabled = true)` | Удалить EXIF (по умолчанию); `false` — сохранить. |
 | `.convert(format)` | Формат вывода (`.toFormat` — синоним). |
 | `.abortWith(signal)` | Прикрепить `AbortSignal`. |
 

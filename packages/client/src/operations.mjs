@@ -10,12 +10,40 @@ export const SUPPORTED_FORMATS = Object.freeze([
 ])
 
 /**
+ * Resize fit modes. Must match `FIT_MODES` in `@sharptown/core`.
+ * @type {readonly string[]}
+ */
+export const FIT_MODES = Object.freeze([
+  'cover', 'contain', 'fill', 'inside', 'outside',
+])
+
+/**
  * @typedef {object} Operations
  * @property {number} [width]
  * @property {number} [height]
+ * @property {number} [dpr]
+ * @property {number} [aspectRatio]
+ * @property {string} [fit]
+ * @property {string} [background]
+ * @property {boolean} [smartCrop]
+ * @property {string} [crop]
+ * @property {string} [cropOffset]
+ * @property {boolean} [autoOrient]
  * @property {number} [rotate]
  * @property {boolean} [flip]
  * @property {number} [blur]
+ * @property {number|boolean} [sharpen]
+ * @property {number|boolean} [oilPaint]
+ * @property {number} [brightness]
+ * @property {number} [contrast]
+ * @property {number} [saturation]
+ * @property {number} [exposure]
+ * @property {number} [hue]
+ * @property {number} [gamma]
+ * @property {string} [colorize]
+ * @property {number|boolean} [sepia]
+ * @property {boolean} [invert]
+ * @property {number} [threshold]
  * @property {number} [r]
  * @property {number} [g]
  * @property {number} [b]
@@ -23,6 +51,9 @@ export const SUPPORTED_FORMATS = Object.freeze([
  * @property {boolean} [removeAlpha]
  * @property {boolean} [ensureAlpha]
  * @property {string} [convertTo]
+ * @property {number} [quality]
+ * @property {boolean} [progressive]
+ * @property {boolean} [stripMetadata]
  */
 
 /**
@@ -35,6 +66,36 @@ export function toInt(value, field) {
   const parsed = typeof value === 'number' ? value : Number(value)
   if (!Number.isInteger(parsed)) {
     throw new SharptownError(`Invalid ${field}: expected an integer, got ${value}`)
+  }
+  return parsed
+}
+
+/**
+ * Coerces a value to a finite number, throwing a clear error on invalid input.
+ * @param {unknown} value
+ * @param {string} field
+ * @returns {number}
+ */
+export function toNumber(value, field) {
+  const parsed = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(parsed)) {
+    throw new SharptownError(`Invalid ${field}: expected a number, got ${value}`)
+  }
+  return parsed
+}
+
+/**
+ * A number constrained to an inclusive range.
+ * @param {unknown} value
+ * @param {string} field
+ * @param {number} min
+ * @param {number} max
+ * @returns {number}
+ */
+export function toRange(value, field, min, max) {
+  const parsed = toNumber(value, field)
+  if (parsed < min || parsed > max) {
+    throw new SharptownError(`Invalid ${field}: expected ${min}–${max}, got ${parsed}`)
   }
   return parsed
 }
@@ -82,6 +143,20 @@ export function assertFormat(format) {
 }
 
 /**
+ * Asserts that a fit mode is supported by the server.
+ * @param {string} fit
+ * @returns {string}
+ */
+export function assertFit(fit) {
+  if (!FIT_MODES.includes(fit)) {
+    throw new SharptownError(
+      `Unsupported fit "${fit}". Supported: ${FIT_MODES.join(', ')}`,
+    )
+  }
+  return fit
+}
+
+/**
  * Serializes accumulated operations into `URLSearchParams`. Parameter names match
  * what the server parses (see `@sharptown/core`'s `applyOperations`).
  * @param {Operations} ops
@@ -93,17 +168,49 @@ export function assertFormat(format) {
  */
 export function toSearchParams(ops) {
   const params = new URLSearchParams()
-  if (ops.width != null) params.set('width', String(ops.width))
-  if (ops.height != null) params.set('height', String(ops.height))
-  if (ops.rotate != null) params.set('rotate', String(ops.rotate))
-  if (ops.flip) params.set('flip', 'true')
-  if (ops.blur != null) params.set('blur', String(ops.blur))
-  if (ops.r != null) params.set('r', String(ops.r))
-  if (ops.g != null) params.set('g', String(ops.g))
-  if (ops.b != null) params.set('b', String(ops.b))
-  if (ops.grayscale) params.set('grayscale', 'true')
-  if (ops.removeAlpha) params.set('removeAlpha', 'true')
-  if (ops.ensureAlpha) params.set('ensureAlpha', 'true')
-  if (ops.convertTo) params.set('convertTo', ops.convertTo)
+  const setNumber = (key) => { if (ops[key] != null) params.set(key, String(ops[key])) }
+  const setFlag = (key) => { if (ops[key] != null) params.set(key, ops[key] ? 'true' : 'false') }
+  const setString = (key) => { if (ops[key] != null) params.set(key, String(ops[key])) }
+  const setScalar = (key) => {
+    if (ops[key] == null) return
+    params.set(key, ops[key] === true ? 'true' : String(ops[key]))
+  }
+
+  setNumber('width')
+  setNumber('height')
+  setNumber('dpr')
+  setNumber('aspectRatio')
+  setString('fit')
+  setString('background')
+  setFlag('smartCrop')
+  setString('crop')
+  setString('cropOffset')
+  setFlag('autoOrient')
+  setNumber('rotate')
+  setFlag('flip')
+  setNumber('blur')
+  setScalar('sharpen')
+  setScalar('oilPaint')
+  setNumber('brightness')
+  setNumber('contrast')
+  setNumber('saturation')
+  setNumber('exposure')
+  setNumber('hue')
+  setNumber('gamma')
+  setString('colorize')
+  setScalar('sepia')
+  setFlag('invert')
+  setNumber('threshold')
+  setNumber('r')
+  setNumber('g')
+  setNumber('b')
+  setFlag('grayscale')
+  setFlag('removeAlpha')
+  setFlag('ensureAlpha')
+  setString('convertTo')
+  setNumber('quality')
+  setFlag('progressive')
+  setFlag('stripMetadata')
+
   return params
 }
