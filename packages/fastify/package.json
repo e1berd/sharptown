@@ -1,7 +1,7 @@
 {
-  "name": "@sharptown/client",
+  "name": "@sharptown/fastify",
   "version": "1.0.0",
-  "description": "Expressive, isomorphic JavaScript client for the Sharptown image transformation API. Works in the browser, Node, Bun and Deno.",
+  "description": "Fastify plugin for Sharptown — a single /transform route on top of @sharptown/core.",
   "type": "module",
   "main": "./src/index.mjs",
   "module": "./src/index.mjs",
@@ -18,25 +18,23 @@
     "dist",
     "README.md"
   ],
-  "sideEffects": false,
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "keywords": [
-    "sharptown",
-    "image",
-    "sharp",
-    "resize",
-    "convert",
-    "webp",
-    "isomorphic",
-    "client"
-  ],
   "license": "MIT",
+  "dependencies": {
+    "@fastify/multipart": "^9.3.0",
+    "@sharptown/core": "workspace:*",
+    "fastify-plugin": "^5.0.1"
+  },
+  "peerDependencies": {
+    "fastify": "^5.0.0"
+  },
   "devDependencies": {
+    "fastify": "^5.0.0",
     "typescript": "^5.5.0"
   }
 }

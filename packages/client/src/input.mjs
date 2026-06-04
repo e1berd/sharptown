@@ -2,12 +2,12 @@ import { SharptownError } from './errors.mjs'
 
 /**
  * @typedef {Blob | File | ArrayBuffer | ArrayBufferView | ReadableStream | URL | string} ImageInput
- * Возможные виды входа:
- *  - `Blob` / `File` — как есть (браузер, Node 18+, Bun, Deno)
- *  - `ArrayBuffer` / `Uint8Array` и прочие `TypedArray` / `DataView` (включая Node `Buffer`)
- *  - `ReadableStream` — web-стрим
- *  - `string` — `http(s)://…` (будет загружен через fetch) или путь к файлу (Node/Bun/Deno)
- *  - `URL` — `http(s):`/`file:` URL
+ * Accepted input kinds:
+ *  - `Blob` / `File` — used as-is (browser, Node 18+, Bun, Deno)
+ *  - `ArrayBuffer` / `Uint8Array` and other `TypedArray` / `DataView` (including Node `Buffer`)
+ *  - `ReadableStream` — a web stream
+ *  - `string` — an `http(s)://…` URL (fetched) or a file path (Node/Bun/Deno)
+ *  - `URL` — an `http(s):` or `file:` URL
  */
 
 /**
@@ -19,12 +19,16 @@ import { SharptownError } from './errors.mjs'
 const HTTP_RE = /^https?:\/\//i
 
 /**
- * Приводит любой поддерживаемый вход к `Blob` + имени файла. Изоморфно: чтение
- * файлов с диска подгружается динамически (`node:fs/promises`) и не попадает в
- * браузерный бандл.
+ * Normalizes any supported input into a `Blob` plus a filename. Isomorphic: reading
+ * files from disk is imported dynamically (`node:fs/promises`) so it never reaches the
+ * browser bundle.
  * @param {ImageInput} input
  * @param {string} [fallbackName]
  * @returns {Promise<NormalizedInput>}
+ *
+ * @example
+ * const { blob, filename } = await normalizeInput('./photo.jpg')
+ * const { blob: b2 } = await normalizeInput(new Uint8Array([0, 1, 2]))
  */
 export async function normalizeInput(input, fallbackName = 'image') {
   if (input == null) {

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive, ref, shallowRef } from 'vue'
-import { createClient, SharptownError, SUPPORTED_FORMATS } from '@sharptown/client'
+import { sharptown, SharptownError, SUPPORTED_FORMATS } from '@sharptown/client'
 
 const baseUrl = ref('http://localhost:3001')
 
@@ -70,8 +70,8 @@ async function run() {
   revoke(resultUrl.value)
   resultUrl.value = ''
   try {
-    const sharptown = createClient(baseUrl.value)
-    const blob = await applyOperations(sharptown.transform(file.value, { filename: file.value.name }))
+    const st = sharptown(baseUrl.value)
+    const blob = await applyOperations(st.transform(file.value, { filename: file.value.name }))
     resultUrl.value = URL.createObjectURL(blob)
     resultSize.value = blob.size
     status.value = 'done'
@@ -89,7 +89,7 @@ const downloadName = computed(() => {
 })
 
 const codePreview = computed(() => {
-  const lines = ['const st = createClient(' + JSON.stringify(baseUrl.value) + ')', '', 'const out = await st']
+  const lines = ['const st = sharptown(' + JSON.stringify(baseUrl.value) + ')', '', 'const out = await st']
   lines.push('  .transform(file)')
   if (ops.width || ops.height) lines.push(`  .resize(${formatArgs([numberOrUndefined(ops.width), numberOrUndefined(ops.height)])})`)
   if (ops.rotate) lines.push(`  .rotate(${Number(ops.rotate)})`)

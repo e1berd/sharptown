@@ -14,7 +14,7 @@ produced it.
 
 ## What it demonstrates
 
-- Creating a client in the browser: `createClient('http://localhost:3001')`.
+- Creating a client in the browser: `sharptown('http://localhost:3001')`.
 - The **fluent, chainable** builder: `resize`, `rotate`, `flip`, `blur`, `tint`,
   `grayscale`, `removeAlpha`, `ensureAlpha`, `convert`.
 - Awaiting the builder to get a `Blob`, then rendering it via `URL.createObjectURL`.
@@ -76,9 +76,9 @@ The core of the integration is a single function that builds the chain from the
 reactive form state and awaits it:
 
 ```js
-import { createClient, SharptownError } from '@sharptown/client'
+import { sharptown, SharptownError } from '@sharptown/client'
 
-const st = createClient(baseUrl.value)
+const st = sharptown(baseUrl.value)
 
 const blob = await st
   .transform(file, { filename: file.name })
@@ -113,5 +113,5 @@ examples/vue/
 ## Pointing at another server
 
 Change the **Server URL** field at the top of the app (defaults to
-`http://localhost:3001`). It is passed verbatim to `createClient`, so you can target a
+`http://localhost:3001`). It is passed verbatim to `sharptown`, so you can target a
 deployed instance or a Docker container started via the root `docker-compose.yml`.

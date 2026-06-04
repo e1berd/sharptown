@@ -1,8 +1,8 @@
 import { SharptownError } from './errors.mjs'
 
 /**
- * Форматы вывода, поддерживаемые сервером Sharptown. Должны совпадать с
- * `SUPPORTED_FORMATS` в `@sharptown/server` (`src/convert.mjs`).
+ * Output formats supported by the Sharptown server. Must match `SUPPORTED_FORMATS`
+ * in `@sharptown/core`.
  * @type {readonly string[]}
  */
 export const SUPPORTED_FORMATS = Object.freeze([
@@ -26,7 +26,7 @@ export const SUPPORTED_FORMATS = Object.freeze([
  */
 
 /**
- * Превращает целое значение в число, бросая понятную ошибку при невалидном вводе.
+ * Coerces a value to an integer, throwing a clear error on invalid input.
  * @param {unknown} value
  * @param {string} field
  * @returns {number}
@@ -40,7 +40,7 @@ export function toInt(value, field) {
 }
 
 /**
- * Целое в диапазоне [0, 255] — для компонент цвета (tint).
+ * An integer in the [0, 255] range — for tint color channels.
  * @param {unknown} value
  * @param {string} field
  * @returns {number}
@@ -54,7 +54,7 @@ export function toColor(value, field) {
 }
 
 /**
- * Положительное целое — для размеров/радиусов.
+ * A non-negative integer — for sizes and radii.
  * @param {unknown} value
  * @param {string} field
  * @returns {number}
@@ -68,7 +68,7 @@ export function toPositiveInt(value, field) {
 }
 
 /**
- * Проверяет, что формат поддерживается сервером.
+ * Asserts that a format is supported by the server.
  * @param {string} format
  * @returns {string}
  */
@@ -82,12 +82,16 @@ export function assertFormat(format) {
 }
 
 /**
- * Сериализует накопленные операции в query-строку. Имена параметров совпадают
- * с тем, что разбирает сервер в `src/applyOperations.mjs`.
+ * Serializes accumulated operations into `URLSearchParams`. Parameter names match
+ * what the server parses (see `@sharptown/core`'s `applyOperations`).
  * @param {Operations} ops
- * @returns {string} query-строка без ведущего `?`
+ * @returns {URLSearchParams}
+ *
+ * @example
+ * toSearchParams({ width: 500, convertTo: 'webp' }).toString()
+ * // => 'width=500&convertTo=webp'
  */
-export function buildQuery(ops) {
+export function toSearchParams(ops) {
   const params = new URLSearchParams()
   if (ops.width != null) params.set('width', String(ops.width))
   if (ops.height != null) params.set('height', String(ops.height))
@@ -101,5 +105,5 @@ export function buildQuery(ops) {
   if (ops.removeAlpha) params.set('removeAlpha', 'true')
   if (ops.ensureAlpha) params.set('ensureAlpha', 'true')
   if (ops.convertTo) params.set('convertTo', ops.convertTo)
-  return params.toString()
+  return params
 }

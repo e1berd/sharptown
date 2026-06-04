@@ -1,0 +1,16 @@
+{
+  "name": "@sharptown/server-grpc",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:env": "node --watch --env-file=../../.env grpc.mjs",
+    "prod:env": "node --env-file=../../.env grpc.mjs",
+    "prod": "node grpc.mjs"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.8.1",
+    "@sharptown/core": "workspace:*"
+  }
+}

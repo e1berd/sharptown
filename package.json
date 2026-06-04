@@ -8,11 +8,10 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "pnpm --filter @sharptown/server dev:env",
-    "start": "pnpm --filter @sharptown/server prod:env",
-    "grpc": "pnpm --filter @sharptown/server grpc",
-    "grpc:dev": "pnpm --filter @sharptown/server grpc:dev",
-    "build:client": "pnpm --filter @sharptown/client build",
-    "test:client": "pnpm --filter @sharptown/client test"
+    "dev": "pnpm --filter @sharptown/server-rest dev:env",
+    "rest": "pnpm --filter @sharptown/server-rest dev:env",
+    "grpc": "pnpm --filter @sharptown/server-grpc dev:env",
+    "jsonrpc": "pnpm --filter @sharptown/server-jsonrpc dev:env",
+    "build": "pnpm -r build"
   }
 }

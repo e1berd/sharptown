@@ -1,11 +1,17 @@
 /**
- * `@sharptown/client` — выразительный изоморфный клиент для API трансформации
- * изображений Sharptown. Работает в браузере, Node, Bun и Deno.
+ * `@sharptown/client` — an expressive, isomorphic client for the Sharptown image
+ * transformation API. Works in the browser, Node, Bun and Deno.
  *
  * @module @sharptown/client
+ *
+ * @example
+ * import { sharptown } from '@sharptown/client'
+ *
+ * const st = sharptown('http://localhost:3001')
+ * const webp = await st.transform(file).resize(800).convert('webp')
  */
 
-export { createClient, SharptownClient } from './client.mjs'
+export { sharptown, SharptownClient } from './client.mjs'
 export { TransformBuilder } from './transform-builder.mjs'
 export { rest } from './transports/rest.mjs'
 export { SharptownError } from './errors.mjs'

@@ -7,7 +7,7 @@ import {
 
 /**
  * @typedef {object} BuilderContext
- * @property {string} baseUrl
+ * @property {URL} baseUrl
  * @property {import('./transports/rest.mjs').Transport} transport
  * @property {(input: any, init?: any) => Promise<Response>} fetchImpl
  * @property {Record<string, string>} headers
@@ -17,12 +17,12 @@ import {
  */
 
 /**
- * Выразительный, цепочечный построитель трансформации одного изображения.
+ * An expressive, chainable builder for transforming a single image.
  *
- * Каждый метод-операция возвращает `this`, поэтому вызовы можно объединять в
- * цепочку. Объект «thenable»: его можно `await`-ить напрямую (результат — `Blob`),
- * либо завершить явным терминалом (`blob()`, `arrayBuffer()`, `bytes()`,
- * `response()`, `stream()`, `toFile()`).
+ * Every operation method returns `this`, so calls can be chained. The object is
+ * "thenable": you can `await` it directly (resolving to a `Blob`) or finish with an
+ * explicit terminal (`blob()`, `arrayBuffer()`, `bytes()`, `response()`, `stream()`,
+ * `toFile()`).
  *
  * @example
  * const blob = await st.transform(file)
@@ -43,11 +43,14 @@ export class TransformBuilder {
   }
 
   /**
-   * Ресайз. Принимает `(width, height)`, только `(width)` или объект
-   * `{ width, height }`.
+   * Resize. Accepts `(width, height)`, just `(width)`, or an object `{ width, height }`.
    * @param {number | { width?: number, height?: number }} [width]
    * @param {number} [height]
    * @returns {this}
+   *
+   * @example
+   * st.transform(file).resize(800, 600)
+   * st.transform(file).resize({ width: 800 })
    */
   resize(width, height) {
     if (typeof width === 'object' && width !== null) {
@@ -59,43 +62,47 @@ export class TransformBuilder {
     return this
   }
 
-  /** Задать только ширину. @param {number} value @returns {this} */
+  /** Sets the width only. @param {number} value @returns {this} */
   width(value) {
     this.#ops.width = toPositiveInt(value, 'width')
     return this
   }
 
-  /** Задать только высоту. @param {number} value @returns {this} */
+  /** Sets the height only. @param {number} value @returns {this} */
   height(value) {
     this.#ops.height = toPositiveInt(value, 'height')
     return this
   }
 
-  /** Повернуть на градусы. @param {number} degrees @returns {this} */
+  /** Rotates by the given degrees. @param {number} degrees @returns {this} */
   rotate(degrees) {
     this.#ops.rotate = toInt(degrees, 'rotate')
     return this
   }
 
-  /** Отразить по горизонтали. @param {boolean} [enabled=true] @returns {this} */
+  /** Flips horizontally. @param {boolean} [enabled=true] @returns {this} */
   flip(enabled = true) {
     this.#ops.flip = Boolean(enabled)
     return this
   }
 
-  /** Размытие (радиус/sigma). @param {number} [sigma=1] @returns {this} */
+  /** Blurs by the given sigma/radius. @param {number} [sigma=1] @returns {this} */
   blur(sigma = 1) {
     this.#ops.blur = toPositiveInt(sigma, 'blur')
     return this
   }
 
   /**
-   * Тонировать цветом. Принимает `(r, g, b)` или объект `{ r, g, b }`.
-   * Любая компонента опциональна (0–255).
+   * Tints with a color. Accepts `(r, g, b)` or an object `{ r, g, b }`. Each channel
+   * is optional (0–255).
    * @param {number | { r?: number, g?: number, b?: number }} r
    * @param {number} [g]
    * @param {number} [b]
    * @returns {this}
+   *
+   * @example
+   * st.transform(file).tint(255, 0, 0)
+   * st.transform(file).tint({ r: 10, b: 20 })
    */
   tint(r, g, b) {
     if (typeof r === 'object' && r !== null) {
@@ -109,54 +116,60 @@ export class TransformBuilder {
     return this
   }
 
-  /** Обесцветить. @param {boolean} [enabled=true] @returns {this} */
+  /** Desaturates the image. @param {boolean} [enabled=true] @returns {this} */
   grayscale(enabled = true) {
     this.#ops.grayscale = Boolean(enabled)
     return this
   }
 
-  /** Британский алиас для {@link grayscale}. @param {boolean} [enabled=true] @returns {this} */
+  /** British alias of {@link grayscale}. @param {boolean} [enabled=true] @returns {this} */
   greyscale(enabled = true) {
     return this.grayscale(enabled)
   }
 
-  /** Удалить альфа-канал. @param {boolean} [enabled=true] @returns {this} */
+  /** Removes the alpha channel. @param {boolean} [enabled=true] @returns {this} */
   removeAlpha(enabled = true) {
     this.#ops.removeAlpha = Boolean(enabled)
     return this
   }
 
-  /** Гарантировать альфа-канал. @param {boolean} [enabled=true] @returns {this} */
+  /** Ensures an alpha channel exists. @param {boolean} [enabled=true] @returns {this} */
   ensureAlpha(enabled = true) {
     this.#ops.ensureAlpha = Boolean(enabled)
     return this
   }
 
   /**
-   * Сконвертировать в формат (`webp`, `png`, `jpg`, `jpeg`, `avif`, `gif`, `heif`).
+   * Converts to a format (`webp`, `png`, `jpg`, `jpeg`, `avif`, `gif`, `heif`).
    * @param {string} format
    * @returns {this}
+   *
+   * @example
+   * st.transform(file).convert('webp')
    */
   convert(format) {
     this.#ops.convertTo = assertFormat(String(format).toLowerCase())
     return this
   }
 
-  /** Алиас для {@link convert}. @param {string} format @returns {this} */
+  /** Alias of {@link convert}. @param {string} format @returns {this} */
   toFormat(format) {
     return this.convert(format)
   }
 
-  /** Привязать `AbortSignal` к запросу. @param {AbortSignal} signal @returns {this} */
+  /** Attaches an `AbortSignal` to the request. @param {AbortSignal} signal @returns {this} */
   abortWith(signal) {
     this.#ctx.signal = signal
     return this
   }
 
   /**
-   * Выполнить запрос и вернуть «сырой» `Response` (для доступа к заголовкам,
-   * стримингу и т.п.).
+   * Runs the request and returns the raw `Response` (for headers, streaming, etc.).
    * @returns {Promise<Response>}
+   *
+   * @example
+   * const res = await st.transform(file).convert('webp').response()
+   * console.log(res.headers.get('content-type'))
    */
   response() {
     return this.#ctx.transport.transform({
@@ -170,30 +183,33 @@ export class TransformBuilder {
     })
   }
 
-  /** Результат как `Blob`. @returns {Promise<Blob>} */
+  /** Result as a `Blob`. @returns {Promise<Blob>} */
   async blob() {
     return (await this.response()).blob()
   }
 
-  /** Результат как `ArrayBuffer`. @returns {Promise<ArrayBuffer>} */
+  /** Result as an `ArrayBuffer`. @returns {Promise<ArrayBuffer>} */
   async arrayBuffer() {
     return (await this.response()).arrayBuffer()
   }
 
-  /** Результат как `Uint8Array`. @returns {Promise<Uint8Array>} */
+  /** Result as a `Uint8Array`. @returns {Promise<Uint8Array>} */
   async bytes() {
     return new Uint8Array(await this.arrayBuffer())
   }
 
-  /** Результат как `ReadableStream` тела ответа. @returns {Promise<ReadableStream<Uint8Array> | null>} */
+  /** Result as the response body `ReadableStream`. @returns {Promise<ReadableStream<Uint8Array> | null>} */
   async stream() {
     return (await this.response()).body
   }
 
   /**
-   * Записать результат в файл (Node/Bun/Deno). Возвращает путь.
+   * Writes the result to a file (Node/Bun/Deno) and returns the path.
    * @param {string | URL} path
    * @returns {Promise<string | URL>}
+   *
+   * @example
+   * await st.transform('./in.jpg').resize(1024).convert('avif').toFile('./out.avif')
    */
   async toFile(path) {
     const bytes = await this.bytes()
@@ -203,7 +219,7 @@ export class TransformBuilder {
   }
 
   /**
-   * Делает построитель «thenable»: `await builder` эквивалентно `builder.blob()`.
+   * Makes the builder "thenable": `await builder` is equivalent to `builder.blob()`.
    * @template TResult1, TResult2
    * @param {((value: Blob) => TResult1 | PromiseLike<TResult1>) | null} [onfulfilled]
    * @param {((reason: any) => TResult2 | PromiseLike<TResult2>) | null} [onrejected]

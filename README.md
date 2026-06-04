@@ -11,15 +11,23 @@ This is a [pnpm](https://pnpm.io) workspace:
 
 | Package | Path | Description |
 | ------- | ---- | ----------- |
-| `@sharptown/server` | [`packages/server`](packages/server) | Fastify + Sharp REST & gRPC service |
+| `@sharptown/core` | [`packages/core`](packages/core) | Framework-agnostic Sharp engine — shared by every adapter |
+| `@sharptown/fastify` | [`packages/fastify`](packages/fastify) | Fastify plugin (REST `/transform`) on top of core |
 | `@sharptown/client` | [`packages/client`](packages/client) | Expressive isomorphic JS client (browser / Node / Bun / Deno) |
+| `@sharptown/server-rest` | [`packages/server-rest`](packages/server-rest) | REST host (Fastify + plugin + static UI) |
+| `@sharptown/server-grpc` | [`packages/server-grpc`](packages/server-grpc) | gRPC streaming host |
+| `@sharptown/server-jsonrpc` | [`packages/server-jsonrpc`](packages/server-jsonrpc) | JSON-RPC 2.0 over WebSocket host |
 | `@sharptown/example-vue` | [`examples/vue`](examples/vue) | Vue 3 + Vite demo using the client |
 
 ```bash
-pnpm install        # install all workspaces
-pnpm dev            # run the server in watch mode
-pnpm build:client   # emit client type declarations
+pnpm install     # install all workspaces
+pnpm dev         # REST server in watch mode (port 3001)
+pnpm grpc        # gRPC server (port 50051)
+pnpm jsonrpc     # JSON-RPC/WebSocket server (port 3002)
+pnpm build       # emit type declarations for all packages
 ```
+
+The three transports are **independent server packages**, all sharing `@sharptown/core`.
 
 
 ## ✨ Features
@@ -67,7 +75,7 @@ curl -X POST \
 пайпится прямо в Sharp, а результат отдаётся обратно потоком чанков. Backpressure
 соблюдается в обе стороны.
 
-Контракт — в [`packages/server/proto/sharptown.proto`](packages/server/proto/sharptown.proto):
+Контракт — в [`packages/server-grpc/proto/sharptown.proto`](packages/server-grpc/proto/sharptown.proto):
 
 ```proto
 service ImageProcessor {
@@ -85,13 +93,13 @@ service ImageProcessor {
 ```bash
 pnpm install
 cp .env.example .env
-pnpm grpc:dev        # dev (watch)
-# или: pnpm grpc     # prod
+pnpm grpc        # dev (watch)
 ```
 
 Порт настраивается через `SHARPTOWN_GRPC_PORT` (по умолчанию `50051`) и
-`SHARPTOWN_GRPC_HOST` (по умолчанию `0.0.0.0`). REST (`index.mjs`) и gRPC (`grpc.mjs`) —
-независимые процессы.
+`SHARPTOWN_GRPC_HOST` (по умолчанию `0.0.0.0`). REST, gRPC и JSON-RPC — это **три
+независимых пакета-сервера** (`@sharptown/server-rest`, `@sharptown/server-grpc`,
+`@sharptown/server-jsonrpc`), каждый запускается отдельно.
 
 ### Пример клиента (Node.js)
 
@@ -100,7 +108,7 @@ import * as grpc from '@grpc/grpc-js'
 import protoLoader from '@grpc/proto-loader'
 import { createReadStream, createWriteStream } from 'node:fs'
 
-const def = protoLoader.loadSync('packages/server/proto/sharptown.proto', { keepCase: false, oneofs: true, defaults: true })
+const def = protoLoader.loadSync('packages/server-grpc/proto/sharptown.proto', { keepCase: false, oneofs: true, defaults: true })
 const { sharptown } = grpc.loadPackageDefinition(def)
 const client = new sharptown.v1.ImageProcessor('localhost:50051', grpc.credentials.createInsecure())
 
@@ -138,9 +146,9 @@ An expressive, isomorphic client (browser / Node / Bun / Deno). Full docs in
 [`packages/client`](packages/client).
 
 ```js
-import { createClient } from '@sharptown/client'
+import { sharptown } from '@sharptown/client'
 
-const st = createClient('http://localhost:3001')
+const st = sharptown('http://localhost:3001')
 
 const webp = await st
   .transform(file)
@@ -158,18 +166,18 @@ pnpm --filter @sharptown/example-vue dev
 ```
 
 ## Docker
-The Dockerfile builds from the repo root context:
+Each server host has its own Dockerfile, built from the repo root context:
 ```bash
-docker build -f packages/server/Dockerfile -t sharptown .
-docker run -p 3001:3001 -d sharptown
+docker build -f packages/server-rest/Dockerfile -t sharptown-rest .
+docker run -p 3001:3001 -d sharptown-rest
 ```
 
 ### docker-compose
-`docker-compose.yml` defines two services — `rest` (port 3001) and `grpc` (port 50051):
+`docker-compose.yml` defines three services — `rest` (3001), `grpc` (50051), `jsonrpc` (3002):
 ```bash
 cp .env.example .env   # optional; compose works without it
-docker compose up --build rest    # REST only
-docker compose up --build         # REST + gRPC
+docker compose up --build rest        # REST only
+docker compose up --build             # all three
 ```
 
 ## 🔁 API Response
@@ -184,8 +192,24 @@ On error → JSON
 ```
 
 ## 🔌 Fastify Plugin Usage
-Sharptown can also be used as a Fastify plugin inside your server.
-Example usage will be published soon.
+The REST transform is shipped as a standalone Fastify plugin, [`@sharptown/fastify`](packages/fastify),
+on top of the framework-agnostic [`@sharptown/core`](packages/core) engine:
+
+```js
+import Fastify from 'fastify'
+import sharptown from '@sharptown/fastify'
+
+const app = Fastify()
+await app.register(sharptown, { prefix: '/api/v1' })
+await app.listen({ port: 3001 })
+```
+
+Because all imaging lives in `@sharptown/core`, adapters for **Hono, Elysia, Express** and
+others are thin — see [the core adapter contract](packages/core#writing-a-new-adapter).
+
+## 🛰️ JSON-RPC over WebSocket
+[`@sharptown/server-jsonrpc`](packages/server-jsonrpc) exposes the transform as JSON-RPC 2.0
+over a WebSocket at `/rpc` (method `image.transform`, base64 payloads). Run with `pnpm jsonrpc`.
 
 ## 🤝 Contributing
 1. Fork the repository

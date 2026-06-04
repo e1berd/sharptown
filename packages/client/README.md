@@ -11,9 +11,9 @@ pnpm add @sharptown/client
 ## Quick start
 
 ```js
-import { createClient } from '@sharptown/client'
+import { sharptown } from '@sharptown/client'
 
-const st = createClient('http://localhost:3001')
+const st = sharptown('http://localhost:3001') // a string or a URL instance
 
 const webp = await st
   .transform(file)        // File / Blob / ArrayBuffer / Uint8Array / URL / path
@@ -59,9 +59,9 @@ resolves to a `Blob`. Need another shape? Use an explicit terminal.
 **Node / Bun / Deno** — read from a path, write to disk:
 
 ```js
-import { createClient } from '@sharptown/client'
+import { sharptown } from '@sharptown/client'
 
-const st = createClient('http://localhost:3001')
+const st = sharptown('http://localhost:3001')
 await st.transform('./input.jpg').resize(1024).convert('avif').toFile('./out.avif')
 ```
 
@@ -77,7 +77,7 @@ input.addEventListener('change', async () => {
 ## Configuration
 
 ```js
-createClient('http://localhost:3001', {
+sharptown('http://localhost:3001', {
   headers: { Authorization: 'Bearer …' }, // default headers per request
   fetch: customFetch,                      // inject fetch (Node < 18, proxies, tests)
   transport: rest({ field: 'image' }),     // pluggable transport (REST today)

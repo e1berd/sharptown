@@ -1,7 +1,7 @@
 {
-  "name": "@sharptown/client",
+  "name": "@sharptown/core",
   "version": "1.0.0",
-  "description": "Expressive, isomorphic JavaScript client for the Sharptown image transformation API. Works in the browser, Node, Bun and Deno.",
+  "description": "Framework-agnostic image transformation engine for Sharptown, powered by Sharp. Reused by every server adapter (Fastify, Hono, Elysia, Express, gRPC).",
   "type": "module",
   "main": "./src/index.mjs",
   "module": "./src/index.mjs",
@@ -25,17 +25,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "keywords": [
-    "sharptown",
-    "image",
-    "sharp",
-    "resize",
-    "convert",
-    "webp",
-    "isomorphic",
-    "client"
-  ],
   "license": "MIT",
+  "dependencies": {
+    "sharp": "^0.33.5"
+  },
   "devDependencies": {
     "typescript": "^5.5.0"
   }

@@ -1,0 +1,18 @@
+{
+  "name": "@sharptown/server-jsonrpc",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:env": "node --watch --env-file=../../.env index.mjs",
+    "prod:env": "node --env-file=../../.env index.mjs",
+    "prod": "node index.mjs"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@fastify/websocket": "^11.0.2",
+    "@mgcrea/pino-pretty-compact": "^1.4.2",
+    "@sharptown/core": "workspace:*",
+    "fastify": "^5.0.0"
+  }
+}

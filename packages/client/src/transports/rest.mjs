@@ -1,11 +1,11 @@
 import { SharptownError } from '../errors.mjs'
 import { normalizeInput } from '../input.mjs'
-import { buildQuery } from '../operations.mjs'
+import { toSearchParams } from '../operations.mjs'
 
 /**
  * @typedef {object} TransportRequest
- * @property {string} baseUrl
- * @property {(input: any, init?: any) => Promise<Response>} fetchImpl
+ * @property {URL} baseUrl
+ * @property {(input: Request) => Promise<Response>} fetchImpl
  * @property {Record<string, string>} headers
  * @property {import('../input.mjs').ImageInput} input
  * @property {string} [filename]
@@ -20,13 +20,17 @@ import { buildQuery } from '../operations.mjs'
  */
 
 /**
- * REST-транспорт — изоморфный, работает поверх `fetch` + `FormData`. Целится в
- * `POST {baseUrl}/api/v1/transform`. Это дефолтный транспорт `createClient`.
+ * The REST transport — isomorphic, built on `fetch` + `FormData`. Targets
+ * `POST {baseUrl}/api/v1/transform`. This is the default transport used by `sharptown()`.
  *
  * @param {{ path?: string, field?: string }} [options]
- *   `path` — путь эндпоинта (по умолчанию `/api/v1/transform`).
- *   `field` — имя поля multipart с файлом (по умолчанию `image`).
+ *   `path` — endpoint path (default `/api/v1/transform`).
+ *   `field` — multipart field name for the file (default `image`).
  * @returns {Transport}
+ *
+ * @example
+ * import { sharptown, rest } from '@sharptown/client'
+ * const st = sharptown('http://localhost:3001', { transport: rest({ field: 'image' }) })
  */
 export function rest(options = {}) {
   const path = options.path ?? '/api/v1/transform'
@@ -40,15 +44,15 @@ export function rest(options = {}) {
       const form = new FormData()
       form.append(field, blob, filename || detectedName)
 
-      const query = buildQuery(operations)
-      const url = `${baseUrl}${path}${query ? `?${query}` : ''}`
-
-      const res = await fetchImpl(url, {
+      const endpoint = resolveEndpoint(baseUrl, path, toSearchParams(operations))
+      const request = new Request(endpoint, {
         method: 'POST',
         body: form,
         headers,
         signal,
       })
+
+      const res = await fetchImpl(request)
 
       if (!res.ok) {
         let body
@@ -65,4 +69,17 @@ export function rest(options = {}) {
       return res
     },
   }
+}
+
+/**
+ * @param {URL} baseUrl
+ * @param {string} path
+ * @param {URLSearchParams} params
+ * @returns {URL}
+ */
+function resolveEndpoint(baseUrl, path, params) {
+  const endpoint = new URL(baseUrl.href)
+  endpoint.pathname = endpoint.pathname.replace(/\/+$/, '') + path
+  endpoint.search = params.toString()
+  return endpoint
 }
