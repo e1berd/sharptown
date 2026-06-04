@@ -66,6 +66,19 @@ the proto convention (`tint_r`, `remove_alpha`, `convert_to`).
 4. Call `end()` on the client stream.
 5. Read the transformed image back as a sequence of `chunk` messages until `end`.
 
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Sharptown gRPC
+  C->>S: options (first message)
+  C->>S: chunk
+  C->>S: chunk
+  C-->>S: end()
+  S-->>C: chunk
+  S-->>C: chunk
+  S-->>C: end
+```
+
 ## Run it
 
 ```bash

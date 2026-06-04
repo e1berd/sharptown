@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config'
 import vue from '@astrojs/vue'
 import yaml from '@rollup/plugin-yaml'
+import { remarkMermaid } from './src/lib/remark-mermaid.mjs'
 
 /**
  * Sharptown documentation site. Astro + Markdown content collections, with a single
@@ -25,6 +26,7 @@ export default defineConfig({
     plugins: [yaml()],
   },
   markdown: {
+    remarkPlugins: [remarkMermaid],
     shikiConfig: {
       themes: {
         light: 'github-light',

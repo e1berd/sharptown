@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css'
 import Header from '../components/Header.astro'
+import Mermaid from '../components/Mermaid.astro'
 import { useTranslations, type Locale } from '../i18n/ui'
 import { REPO_URL, SOURCECRAFT_URL } from '../lib/links'
 
@@ -52,6 +53,8 @@ const desc = description ?? t('home.meta_description')
         </span>
       </div>
     </footer>
+
+    <Mermaid />
 
     <style>
       .st-footer {

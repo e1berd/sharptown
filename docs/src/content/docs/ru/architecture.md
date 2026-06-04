@@ -13,25 +13,20 @@ Sharptown — это монорепозиторий на pnpm, построен�
 
 ## Общая картина
 
-```
-                ┌─────────────────────────────┐
-                │      @sharptown/core         │
-                │   Движок Sharp (libvips)     │
-                │  applyOperations / transform │
-                └──────────────┬──────────────┘
-                               │ используется каждым адаптером
-        ┌──────────────────────┼──────────────────────┐
-        │                      │                       │
-┌───────▼────────┐   ┌─────────▼─────────┐   ┌─────────▼──────────┐
-│ @sharptown/    │   │ @sharptown/       │   │ @sharptown/        │
-│   fastify      │   │   server-grpc     │   │  server-jsonrpc    │
-│ REST-плагин    │   │ streaming-хост    │   │ WS JSON-RPC хост    │
-└───────┬────────┘   └───────────────────┘   └────────────────────┘
-        │
-┌───────▼────────┐                         ┌────────────────────┐
-│ @sharptown/    │   ◀──── HTTP ────▶       │  @sharptown/client │
-│  server-rest   │                         │  изоморфный JS     │
-└────────────────┘                         └────────────────────┘
+```mermaid
+flowchart TB
+  core["@sharptown/core · движок Sharp (libvips)"]
+  fastify["@sharptown/fastify-plugin · REST-плагин"]
+  grpc["@sharptown/server-grpc · streaming-хост"]
+  jsonrpc["@sharptown/server-jsonrpc · JSON-RPC хост"]
+  rest["@sharptown/server-rest · REST-хост"]
+  client["@sharptown/client · изоморфный JS"]
+
+  core -- используется каждым адаптером --> fastify
+  core --> grpc
+  core --> jsonrpc
+  fastify --> rest
+  client -. HTTP .-> rest
 ```
 
 ## Движок-ядро — `@sharptown/core`

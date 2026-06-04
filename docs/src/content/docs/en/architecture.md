@@ -12,25 +12,20 @@ single framework-agnostic engine, and every transport is a thin adapter on top o
 
 ## The big picture
 
-```
-                ┌─────────────────────────────┐
-                │      @sharptown/core         │
-                │   Sharp engine (libvips)     │
-                │  applyOperations / transform │
-                └──────────────┬──────────────┘
-                               │ reused by every adapter
-        ┌──────────────────────┼──────────────────────┐
-        │                      │                       │
-┌───────▼────────┐   ┌─────────▼─────────┐   ┌─────────▼──────────┐
-│ @sharptown/    │   │ @sharptown/       │   │ @sharptown/        │
-│   fastify      │   │   server-grpc     │   │  server-jsonrpc    │
-│ REST plugin    │   │ streaming host    │   │ WS JSON-RPC host   │
-└───────┬────────┘   └───────────────────┘   └────────────────────┘
-        │
-┌───────▼────────┐                         ┌────────────────────┐
-│ @sharptown/    │   ◀──── HTTP ────▶       │  @sharptown/client │
-│  server-rest   │                         │  isomorphic JS     │
-└────────────────┘                         └────────────────────┘
+```mermaid
+flowchart TB
+  core["@sharptown/core · Sharp engine (libvips)"]
+  fastify["@sharptown/fastify-plugin · REST plugin"]
+  grpc["@sharptown/server-grpc · streaming host"]
+  jsonrpc["@sharptown/server-jsonrpc · JSON-RPC host"]
+  rest["@sharptown/server-rest · REST host"]
+  client["@sharptown/client · isomorphic JS"]
+
+  core -- reused by every adapter --> fastify
+  core --> grpc
+  core --> jsonrpc
+  fastify --> rest
+  client -. HTTP .-> rest
 ```
 
 ## The core engine — `@sharptown/core`

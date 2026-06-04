@@ -1,0 +1,77 @@
+---
+/**
+ * Client-side Mermaid runtime. Renders every `<pre class="mermaid">` on the page and
+ * re-renders when the light/dark theme toggles, using theme variables that match the
+ * site's angular yellow palette. Mermaid itself is dynamically imported only when a
+ * diagram is present, so diagram-free pages stay light. Keeps the site fully static.
+ */
+---
+
+<script>
+  async function setupMermaid() {
+    const nodes = () => Array.from(document.querySelectorAll('pre.mermaid'))
+    if (nodes().length === 0) return
+
+    const { default: mermaid } = await import('mermaid')
+
+    const palette = (dark) =>
+      dark
+        ? {
+            background: 'transparent',
+            primaryColor: '#1c1c20',
+            primaryBorderColor: '#ffd400',
+            primaryTextColor: '#f4f1e6',
+            secondaryColor: '#141416',
+            tertiaryColor: '#141416',
+            lineColor: '#9c988a',
+            textColor: '#f4f1e6',
+            mainBkg: '#1c1c20',
+            clusterBkg: '#141416',
+            clusterBorder: '#3d3d42',
+            edgeLabelBackground: '#0c0c0d',
+          }
+        : {
+            background: 'transparent',
+            primaryColor: '#f3eeda',
+            primaryBorderColor: '#b58a00',
+            primaryTextColor: '#16150f',
+            secondaryColor: '#ece5cc',
+            tertiaryColor: '#ece5cc',
+            lineColor: '#6b6655',
+            textColor: '#16150f',
+            mainBkg: '#f3eeda',
+            clusterBkg: '#faf7ec',
+            clusterBorder: '#b7ab7e',
+            edgeLabelBackground: '#faf7ec',
+          }
+
+    function render() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark'
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: 'loose',
+        theme: 'base',
+        themeVariables: palette(dark),
+        fontFamily: 'inherit',
+        flowchart: { curve: 'linear', htmlLabels: true, useMaxWidth: true },
+        themeCSS: 'rect, polygon { rx: 0 !important; ry: 0 !important; }',
+      })
+
+      for (const el of nodes()) {
+        if (!el.dataset.src) el.dataset.src = el.textContent || ''
+        el.removeAttribute('data-processed')
+        el.innerHTML = el.dataset.src
+      }
+      mermaid.run({ nodes: nodes() })
+    }
+
+    render()
+
+    new MutationObserver(render).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+  }
+
+  setupMermaid()
+</script>

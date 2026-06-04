@@ -16,10 +16,12 @@ JS / framework-agnostic.
 
 ## The idea
 
-```
- user tweaks sliders ──▶ build a transform chain ──▶ POST to Sharptown
-        ▲                                                    │
-        └────────────  show returned Blob as preview  ◀──────┘
+```mermaid
+flowchart LR
+  ui["User tweaks sliders"] --> chain["Build a transform chain"]
+  chain --> post["POST to Sharptown"]
+  post --> preview["Show returned Blob as preview"]
+  preview --> ui
 ```
 
 Every edit is just a new transform request. Sharptown is stateless, so the editor's

@@ -66,6 +66,19 @@ message TransformResponse {
 4. Вызовите `end()` на клиентском потоке.
 5. Читайте обратно трансформированное изображение последовательностью `chunk` до `end`.
 
+```mermaid
+sequenceDiagram
+  participant C as Клиент
+  participant S as Sharptown gRPC
+  C->>S: options (первое сообщение)
+  C->>S: chunk
+  C->>S: chunk
+  C-->>S: end()
+  S-->>C: chunk
+  S-->>C: chunk
+  S-->>C: end
+```
+
 ## Запуск
 
 ```bash

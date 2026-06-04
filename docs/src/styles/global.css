@@ -1,9 +1,3 @@
-/*
- * Sharptown docs — angular, sharp-edged theme. Yellow accent over dark/light tones.
- * Zero border-radius everywhere, hard borders, dashed focus rings. Theme is toggled by
- * a `data-theme` attribute on <html> ("dark" | "light").
- */
-
 :root {
   --st-yellow: #ffd400;
   --st-yellow-dim: #c9a800;
@@ -18,7 +12,6 @@
   --st-sidebar-w: 260px;
 }
 
-/* ---------- Dark (default) ---------- */
 :root,
 :root[data-theme="dark"] {
   --st-bg: #0c0c0d;
@@ -34,7 +27,6 @@
   --st-selection: rgba(255, 212, 0, 0.28);
 }
 
-/* ---------- Light ---------- */
 :root[data-theme="light"] {
   --st-bg: #faf7ec;
   --st-bg-2: #f3eeda;
@@ -81,7 +73,6 @@ body {
   color: var(--st-fg);
 }
 
-/* ---------- Focus: dashed ring everywhere ---------- */
 :focus-visible {
   outline: 2px dashed var(--st-accent);
   outline-offset: 3px;
@@ -122,7 +113,7 @@ code {
   padding: 0.1em 0.4em;
   color: var(--st-accent);
 }
-pre {
+pre:not(.mermaid) {
   background: var(--st-code-bg) !important;
   border: var(--st-border-w) solid var(--st-border);
   padding: 1.1rem 1.2rem;
@@ -132,11 +123,18 @@ pre {
 }
 pre code { background: none; border: 0; padding: 0; }
 
-/*
- * Shiki dual-theme. The inline token styles default to the light (github-light) palette
- * and stash the dark color in `--shiki-dark`. In dark mode we swap to those, so code is
- * readable; the background stays our own angular code surface.
- */
+pre.mermaid {
+  display: block;
+  margin: 1.8rem 0;
+  padding: 1.4rem;
+  text-align: center;
+  background: var(--st-bg-2);
+  border: var(--st-border-w) solid var(--st-border-strong);
+  overflow-x: auto;
+}
+pre.mermaid:not([data-processed]) { visibility: hidden; min-height: 3rem; }
+pre.mermaid svg { max-width: 100%; height: auto; }
+
 :root[data-theme="dark"] .astro-code,
 :root[data-theme="dark"] .astro-code span {
   color: var(--shiki-dark, currentColor) !important;
@@ -174,7 +172,6 @@ th {
 }
 tr:nth-child(even) td { background: var(--st-bg-2); }
 
-/* ---------- Shared building blocks ---------- */
 .st-tag {
   display: inline-block;
   font-family: var(--st-font-mono);
