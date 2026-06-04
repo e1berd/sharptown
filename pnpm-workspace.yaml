@@ -1,6 +1,8 @@
 packages:
   - 'packages/*'
+  - 'examples/*'
 
 onlyBuiltDependencies:
   - sharp
   - protobufjs
+  - esbuild

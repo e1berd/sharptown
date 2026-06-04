@@ -1,0 +1,32 @@
+services:
+  rest:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile
+    image: sharptown
+    command: ["node", "index.mjs"]
+    ports:
+      - "${SHARPTOWN_PORT:-3001}:3001"
+    environment:
+      SHARPTOWN_PORT: 3001
+      SHARPTOWN_HOST: 0.0.0.0
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+
+  grpc:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile
+    image: sharptown
+    command: ["node", "grpc.mjs"]
+    ports:
+      - "${SHARPTOWN_GRPC_PORT:-50051}:50051"
+    environment:
+      SHARPTOWN_GRPC_PORT: 50051
+      SHARPTOWN_GRPC_HOST: 0.0.0.0
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped

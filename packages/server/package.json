@@ -5,12 +5,12 @@
   "type": "module",
   "main": "./src/plugin.mjs",
   "scripts": {
-    "dev:env": "node --watch --env-file=.env index.mjs",
-    "prod:env": "node --env-file=.env index.mjs",
+    "dev:env": "node --watch --env-file=../../.env index.mjs",
+    "prod:env": "node --env-file=../../.env index.mjs",
     "prod": "node index.mjs",
     "grpc": "node grpc.mjs",
-    "grpc:dev": "node --watch --env-file=.env grpc.mjs",
-    "grpc:prod": "node --env-file=.env grpc.mjs"
+    "grpc:dev": "node --watch --env-file=../../.env grpc.mjs",
+    "grpc:prod": "node --env-file=../../.env grpc.mjs"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",

@@ -13,6 +13,7 @@ This is a [pnpm](https://pnpm.io) workspace:
 | ------- | ---- | ----------- |
 | `@sharptown/server` | [`packages/server`](packages/server) | Fastify + Sharp REST & gRPC service |
 | `@sharptown/client` | [`packages/client`](packages/client) | Expressive isomorphic JS client (browser / Node / Bun / Deno) |
+| `@sharptown/example-vue` | [`examples/vue`](examples/vue) | Vue 3 + Vite demo using the client |
 
 ```bash
 pnpm install        # install all workspaces
@@ -83,7 +84,7 @@ service ImageProcessor {
 
 ```bash
 pnpm install
-cp packages/server/.env.example packages/server/.env
+cp .env.example .env
 pnpm grpc:dev        # dev (watch)
 # или: pnpm grpc     # prod
 ```
@@ -127,7 +128,7 @@ Local Development
 git clone https://github.com/eckeriaue/sharptown.git
 cd sharptown
 pnpm install
-cp packages/server/.env.example packages/server/.env
+cp .env.example .env
 pnpm dev
 ```
 
@@ -149,11 +150,26 @@ const webp = await st
   .convert('webp')
 ```
 
+## 🎛️ Vue Example
+A full Vue 3 + Vite demo lives in [`examples/vue`](examples/vue) — pick an image, chain
+operations, and see the result live. With the server running:
+```bash
+pnpm --filter @sharptown/example-vue dev
+```
+
 ## Docker
 The Dockerfile builds from the repo root context:
 ```bash
 docker build -f packages/server/Dockerfile -t sharptown .
 docker run -p 3001:3001 -d sharptown
+```
+
+### docker-compose
+`docker-compose.yml` defines two services — `rest` (port 3001) and `grpc` (port 50051):
+```bash
+cp .env.example .env   # optional; compose works without it
+docker compose up --build rest    # REST only
+docker compose up --build         # REST + gRPC
 ```
 
 ## 🔁 API Response
