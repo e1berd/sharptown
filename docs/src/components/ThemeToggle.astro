@@ -1,0 +1,57 @@
+---
+/**
+ * Light/dark theme switch. Reads/writes `localStorage.st-theme` and flips the
+ * `data-theme` attribute on <html>. Purely client-side — safe for static hosting.
+ */
+interface Props {
+  label?: string
+}
+const { label = 'Theme' } = Astro.props
+---
+
+<button id="st-theme-toggle" class="st-theme-toggle" type="button" aria-label="Toggle color theme" title={label}>
+  <svg class="st-icon st-icon--sun" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"></path>
+  </svg>
+  <svg class="st-icon st-icon--moon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+  </svg>
+  <span class="st-theme-label">{label}</span>
+</button>
+
+<style>
+  .st-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-family: var(--st-font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.5em 0.8em;
+    border: var(--st-border-w) solid var(--st-border-strong);
+    background: var(--st-bg-2);
+    color: var(--st-fg);
+    cursor: pointer;
+  }
+  .st-theme-toggle:hover { border-color: var(--st-accent); color: var(--st-accent); }
+  .st-icon { width: 16px; height: 16px; }
+  :global(:root[data-theme="dark"]) .st-icon--sun { display: none; }
+  :global(:root[data-theme="light"]) .st-icon--moon { display: none; }
+  @media (max-width: 520px) { .st-theme-label { display: none; } }
+</style>
+
+<script is:inline>
+  (() => {
+    const btn = document.getElementById('st-theme-toggle')
+    if (!btn) return
+    btn.addEventListener('click', () => {
+      const root = document.documentElement
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+      root.setAttribute('data-theme', next)
+      try { localStorage.setItem('st-theme', next) } catch {}
+    })
+  })()
+</script>

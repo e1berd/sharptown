@@ -1,10 +1,12 @@
 packages:
   - 'packages/*'
   - 'examples/*'
+  - 'docs'
 
 allowBuilds:
-  protobufjs: set this to true or false
-  sharp: set this to true or false
+  esbuild: true
+  protobufjs: true
+  sharp: true
 
 onlyBuiltDependencies:
   - sharp

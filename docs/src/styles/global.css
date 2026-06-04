@@ -1,0 +1,205 @@
+/*
+ * Sharptown docs — angular, sharp-edged theme. Yellow accent over dark/light tones.
+ * Zero border-radius everywhere, hard borders, dashed focus rings. Theme is toggled by
+ * a `data-theme` attribute on <html> ("dark" | "light").
+ */
+
+:root {
+  --st-yellow: #ffd400;
+  --st-yellow-dim: #c9a800;
+  --st-yellow-soft: rgba(255, 212, 0, 0.12);
+
+  --st-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --st-font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", "Cascadia Code", Menlo, Consolas, monospace;
+
+  --st-step: 0;
+  --st-border-w: 2px;
+  --st-maxw: 1180px;
+  --st-sidebar-w: 260px;
+}
+
+/* ---------- Dark (default) ---------- */
+:root,
+:root[data-theme="dark"] {
+  --st-bg: #0c0c0d;
+  --st-bg-2: #141416;
+  --st-bg-3: #1c1c20;
+  --st-fg: #f4f1e6;
+  --st-fg-muted: #9c988a;
+  --st-border: #2c2c30;
+  --st-border-strong: #3d3d42;
+  --st-accent: var(--st-yellow);
+  --st-accent-fg: #0c0c0d;
+  --st-code-bg: #131316;
+  --st-selection: rgba(255, 212, 0, 0.28);
+}
+
+/* ---------- Light ---------- */
+:root[data-theme="light"] {
+  --st-bg: #faf7ec;
+  --st-bg-2: #f3eeda;
+  --st-bg-3: #ece5cc;
+  --st-fg: #16150f;
+  --st-fg-muted: #6b6655;
+  --st-border: #d8cfac;
+  --st-border-strong: #b7ab7e;
+  --st-accent: #b58a00;
+  --st-accent-fg: #faf7ec;
+  --st-code-bg: #f3eeda;
+  --st-selection: rgba(181, 138, 0, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--st-bg);
+  color: var(--st-fg);
+  font-family: var(--st-font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background-image:
+    linear-gradient(var(--st-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--st-border) 1px, transparent 1px);
+  background-size: 44px 44px;
+  background-position: -1px -1px;
+}
+
+::selection {
+  background: var(--st-selection);
+  color: var(--st-fg);
+}
+
+/* ---------- Focus: dashed ring everywhere ---------- */
+:focus-visible {
+  outline: 2px dashed var(--st-accent);
+  outline-offset: 3px;
+}
+
+a {
+  color: var(--st-accent);
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+a:hover {
+  text-decoration: underline;
+  text-decoration-style: dashed;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 750;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 90px;
+}
+h1 { font-size: clamp(2rem, 4vw, 2.9rem); margin: 0 0 0.6em; }
+h2 {
+  font-size: 1.6rem;
+  margin: 2.2em 0 0.7em;
+  padding-bottom: 0.3em;
+  border-bottom: var(--st-border-w) solid var(--st-border);
+}
+h3 { font-size: 1.2rem; margin: 1.8em 0 0.5em; }
+
+code {
+  font-family: var(--st-font-mono);
+  font-size: 0.88em;
+}
+:not(pre) > code {
+  background: var(--st-code-bg);
+  border: 1px solid var(--st-border);
+  padding: 0.1em 0.4em;
+  color: var(--st-accent);
+}
+pre {
+  background: var(--st-code-bg) !important;
+  border: var(--st-border-w) solid var(--st-border);
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+pre code { background: none; border: 0; padding: 0; }
+
+hr {
+  border: 0;
+  border-top: var(--st-border-w) dashed var(--st-border-strong);
+  margin: 2.5rem 0;
+}
+
+blockquote {
+  margin: 1.4rem 0;
+  padding: 0.6rem 1.1rem;
+  border-left: 4px solid var(--st-accent);
+  background: var(--st-yellow-soft);
+  color: var(--st-fg);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.4rem 0;
+  font-size: 0.92rem;
+}
+th, td {
+  border: 1px solid var(--st-border);
+  padding: 0.55rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--st-bg-3);
+  font-weight: 700;
+}
+tr:nth-child(even) td { background: var(--st-bg-2); }
+
+/* ---------- Shared building blocks ---------- */
+.st-tag {
+  display: inline-block;
+  font-family: var(--st-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.25em 0.7em;
+  border: 1px solid var(--st-border-strong);
+  color: var(--st-fg-muted);
+}
+.st-tag--accent {
+  border-color: var(--st-accent);
+  color: var(--st-accent);
+  background: var(--st-yellow-soft);
+}
+
+.st-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--st-font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.7em 1.3em;
+  border: var(--st-border-w) solid var(--st-fg);
+  background: transparent;
+  color: var(--st-fg);
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.12s ease, color 0.12s ease;
+}
+.st-btn:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--st-border-strong); }
+.st-btn:active { transform: translate(0, 0); box-shadow: none; }
+.st-btn--primary {
+  background: var(--st-accent);
+  border-color: var(--st-accent);
+  color: var(--st-accent-fg);
+}
+.st-btn--primary:hover { box-shadow: 4px 4px 0 var(--st-fg); }

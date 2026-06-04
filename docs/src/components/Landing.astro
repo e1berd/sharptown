@@ -1,0 +1,211 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { useTranslations, localizedPath, type Locale } from '../i18n/ui'
+
+/**
+ * The landing page body, rendered for a given locale. All copy comes from the YAML
+ * dictionaries via `t()`, so `pages/index.astro` (en) and `pages/ru/index.astro` (ru)
+ * are tiny wrappers around this component.
+ */
+interface Props {
+  locale: Locale
+}
+const { locale } = Astro.props
+const t = useTranslations(locale)
+const link = (p: string) => localizedPath(p, locale)
+
+const band = t<Array<{ strong: string; label: string }>>('home.band')
+const features = t<Array<{ mark: string; title: string; body: string }>>('home.features')
+
+const chain = `import { sharptown } from '@sharptown/client'
+
+const st = sharptown('http://localhost:3001')
+
+const webp = await st
+  .transform(file)
+  .resize(800, 600)
+  .blur(3)
+  .grayscale()
+  .convert('webp')`
+---
+
+<BaseLayout title="Sharptown" description={t('home.meta_description')} locale={locale} path="/">
+  <section class="hero">
+    <div class="hero__inner">
+      <div class="hero__copy">
+        <span class="st-tag st-tag--accent">{t('home.tag')}</span>
+        <h1>{t('home.title_before')}<span class="hl">{t('home.title_highlight')}</span>{t('home.title_after')}</h1>
+        <p class="hero__lead" set:html={t('home.lead_html')} />
+        <div class="hero__actions">
+          <a class="st-btn st-btn--primary" href={link('/docs/introduction')}>{t('home.cta_docs')}</a>
+          <a class="st-btn" href={link('/playground')}>{t('home.cta_playground')}</a>
+        </div>
+        <p class="hero__meta">
+          <span>REST</span><span class="sep">/</span>
+          <span>gRPC</span><span class="sep">/</span>
+          <span>JSON-RPC</span><span class="sep">/</span>
+          <span>Fastify</span>
+        </p>
+      </div>
+
+      <div class="hero__code">
+        <div class="hero__code-bar">
+          <span></span><span></span><span></span>
+          <em>transform.mjs</em>
+        </div>
+        <pre><code>{chain}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="band__inner">
+      {band.map((item) => (
+        <div class="band__item"><strong>{item.strong}</strong><span>{item.label}</span></div>
+      ))}
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="features__inner">
+      <h2 class="features__heading">{t('home.features_heading')}</h2>
+      <div class="grid">
+        {features.map((f) => (
+          <article class="card" tabindex="0">
+            <span class="card__mark" aria-hidden="true">{f.mark}</span>
+            <h3>{f.title}</h3>
+            <p>{f.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="cta__inner">
+      <h2>{t('home.cta_title')}</h2>
+      <p>{t('home.cta_body')}</p>
+      <div class="hero__actions">
+        <a class="st-btn st-btn--primary" href={link('/docs/getting-started')}>{t('home.cta_get_started')}</a>
+        <a class="st-btn" href={link('/docs/building-an-editor')}>{t('home.cta_build_editor')}</a>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .hero { border-bottom: var(--st-border-w) solid var(--st-border-strong); }
+    .hero__inner {
+      max-width: var(--st-maxw);
+      margin: 0 auto;
+      padding: 4.5rem 1.4rem 4rem;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 3rem;
+      align-items: center;
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 5.5vw, 4rem);
+      margin: 0.5em 0 0.35em;
+      line-height: 1.04;
+    }
+    .hl {
+      color: var(--st-accent-fg);
+      background: var(--st-accent);
+      padding: 0 0.15em;
+      box-decoration-break: clone;
+    }
+    .hero__lead { font-size: 1.12rem; color: var(--st-fg); max-width: 42ch; }
+    .hero__actions { display: flex; flex-wrap: wrap; gap: 0.9rem; margin: 1.8rem 0 1.4rem; }
+    .hero__meta {
+      font-family: var(--st-font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--st-fg-muted);
+      display: flex;
+      gap: 0.6rem;
+    }
+    .hero__meta .sep { color: var(--st-accent); }
+
+    .hero__code { border: var(--st-border-w) solid var(--st-border-strong); background: var(--st-code-bg); }
+    .hero__code-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.6rem 0.9rem;
+      border-bottom: var(--st-border-w) solid var(--st-border);
+      background: var(--st-bg-3);
+    }
+    .hero__code-bar span { width: 11px; height: 11px; border: 1.5px solid var(--st-border-strong); }
+    .hero__code-bar span:first-child { background: var(--st-accent); border-color: var(--st-accent); }
+    .hero__code-bar em {
+      margin-left: auto;
+      font-family: var(--st-font-mono);
+      font-style: normal;
+      font-size: 0.74rem;
+      color: var(--st-fg-muted);
+    }
+    .hero__code pre { border: 0; margin: 0; padding: 1.3rem 1.4rem; background: transparent !important; }
+
+    .band { background: var(--st-bg-2); border-bottom: var(--st-border-w) solid var(--st-border-strong); }
+    .band__inner {
+      max-width: var(--st-maxw);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .band__item {
+      padding: 1.4rem 1.4rem;
+      border-right: var(--st-border-w) dashed var(--st-border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .band__item:last-child { border-right: 0; }
+    .band__item strong { font-size: 0.98rem; }
+    .band__item span {
+      font-family: var(--st-font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--st-fg-muted);
+    }
+
+    .features__inner, .cta__inner { max-width: var(--st-maxw); margin: 0 auto; padding: 3.5rem 1.4rem; }
+    .features__heading { border: 0; margin-top: 0; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: var(--st-border-w) solid var(--st-border-strong); }
+    .card {
+      padding: 1.6rem 1.5rem;
+      border-right: var(--st-border-w) solid var(--st-border);
+      border-bottom: var(--st-border-w) solid var(--st-border);
+      background: var(--st-bg);
+      transition: background 0.12s ease;
+    }
+    .card:hover { background: var(--st-bg-2); }
+    .card:focus-visible { outline-offset: -3px; }
+    .card__mark {
+      display: inline-grid;
+      place-items: center;
+      width: 2.2em;
+      height: 2.2em;
+      margin-bottom: 0.7rem;
+      background: var(--st-yellow-soft);
+      border: 1px solid var(--st-accent);
+      color: var(--st-accent);
+      font-size: 1.1rem;
+    }
+    .card h3 { margin: 0 0 0.4rem; }
+    .card p { margin: 0; color: var(--st-fg-muted); font-size: 0.94rem; }
+
+    .cta { border-top: var(--st-border-w) solid var(--st-border-strong); background: var(--st-bg-2); }
+    .cta h2 { border: 0; margin-top: 0; font-size: clamp(1.8rem, 4vw, 2.6rem); }
+    .cta p { max-width: 52ch; color: var(--st-fg); }
+
+    @media (max-width: 880px) {
+      .hero__inner { grid-template-columns: 1fr; }
+      .band__inner { grid-template-columns: repeat(2, 1fr); }
+      .band__item:nth-child(2) { border-right: 0; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</BaseLayout>

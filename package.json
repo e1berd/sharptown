@@ -12,6 +12,8 @@
     "rest": "pnpm --filter @sharptown/server-rest dev:env",
     "grpc": "pnpm --filter @sharptown/server-grpc dev:env",
     "jsonrpc": "pnpm --filter @sharptown/server-jsonrpc dev:env",
+    "docs": "pnpm --filter @sharptown/docs dev",
+    "docs:build": "pnpm --filter @sharptown/docs build",
     "build": "pnpm -r build"
   }
 }

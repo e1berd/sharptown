@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Playground from './Playground.vue'
+import { useTranslations, type Locale } from '../i18n/ui'
+
+/**
+ * The playground page body for a given locale. Feeds the localized `playground` strings
+ * into the Vue island as a prop, so the island itself needs no i18n machinery.
+ */
+interface Props {
+  locale: Locale
+}
+const { locale } = Astro.props
+const t = useTranslations(locale)
+const playgroundStrings = t<Record<string, string>>('playground')
+---
+
+<BaseLayout
+  title={`${t('playground_page.title')} · Sharptown`}
+  description={t('playground_page.meta_description')}
+  locale={locale}
+  path="/playground"
+>
+  <section class="pg-page">
+    <div class="pg-page__inner">
+      <span class="st-tag st-tag--accent">{t('playground_page.tag')}</span>
+      <h1>{t('playground_page.title')}</h1>
+      <p class="pg-page__lead">{t('playground_page.lead')}</p>
+
+      <Playground t={playgroundStrings} client:load />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .pg-page__inner {
+    max-width: var(--st-maxw);
+    margin: 0 auto;
+    padding: 3rem 1.4rem 1rem;
+  }
+  .pg-page h1 { margin: 0.5em 0 0.3em; }
+  .pg-page__lead { color: var(--st-fg-muted); max-width: 60ch; font-size: 1.05rem; }
+</style>

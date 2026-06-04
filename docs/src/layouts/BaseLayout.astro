@@ -1,0 +1,77 @@
+---
+import '../styles/global.css'
+import Header from '../components/Header.astro'
+import { useTranslations, type Locale } from '../i18n/ui'
+import { REPO_URL, SOURCECRAFT_URL } from '../lib/links'
+
+/**
+ * Root HTML shell shared by every page. Inlines a tiny pre-paint script that applies
+ * the saved theme before first paint, so there is no light/dark flash. `path` is the
+ * locale-agnostic page path used by the header's language switcher.
+ */
+interface Props {
+  title: string
+  description?: string
+  locale: Locale
+  path: string
+  showMenuToggle?: boolean
+}
+const { title, description, locale, path, showMenuToggle = false } = Astro.props
+const t = useTranslations(locale)
+const desc = description ?? t('home.meta_description')
+---
+
+<!doctype html>
+<html lang={locale} data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={desc} />
+    <title>{title}</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23ffd400'/%3E%3Cpath d='M4 20L20 4' stroke='%230c0c0d' stroke-width='3'/%3E%3C/svg%3E" />
+    <script is:inline>
+      (() => {
+        try {
+          const saved = localStorage.getItem('st-theme')
+          const theme = saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+          document.documentElement.setAttribute('data-theme', theme)
+        } catch {}
+      })()
+    </script>
+  </head>
+  <body>
+    <Header locale={locale} path={path} showMenuToggle={showMenuToggle} />
+    <slot />
+    <footer class="st-footer">
+      <div class="st-footer__inner">
+        <span>◣ Sharptown</span>
+        <span>{t('footer.builtWith')}</span>
+        <span class="st-footer__links">
+          <a href={REPO_URL} target="_blank" rel="noopener">GitHub ↗</a>
+          <a href={SOURCECRAFT_URL} target="_blank" rel="noopener">SourceCraft ↗</a>
+        </span>
+      </div>
+    </footer>
+
+    <style>
+      .st-footer {
+        border-top: var(--st-border-w) solid var(--st-border-strong);
+        margin-top: 4rem;
+        background: var(--st-bg-2);
+      }
+      .st-footer__inner {
+        max-width: var(--st-maxw);
+        margin: 0 auto;
+        padding: 1.6rem 1.4rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: space-between;
+        font-family: var(--st-font-mono);
+        font-size: 0.78rem;
+        color: var(--st-fg-muted);
+      }
+      .st-footer__links { display: inline-flex; gap: 1.1rem; }
+    </style>
+  </body>
+</html>

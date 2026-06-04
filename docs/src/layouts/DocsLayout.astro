@@ -1,0 +1,177 @@
+---
+import BaseLayout from './BaseLayout.astro'
+import { getNavGroups } from '../lib/nav'
+import { useTranslations, localizedPath, type Locale } from '../i18n/ui'
+import type { MarkdownHeading } from 'astro'
+
+/**
+ * Documentation page chrome: a static sidebar built from the content collection plus an
+ * "on this page" table of contents derived from the rendered headings. Locale-aware.
+ */
+interface Props {
+  title: string
+  description?: string
+  locale: Locale
+  slug: string
+  headings?: MarkdownHeading[]
+}
+const { title, description, locale, slug, headings = [] } = Astro.props
+const t = useTranslations(locale)
+const groups = await getNavGroups(locale)
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3)
+const path = `/docs/${slug}`
+---
+
+<BaseLayout title={`${title} · Sharptown`} description={description} locale={locale} path={path} showMenuToggle>
+  <div class="st-docs">
+    <aside class="st-sidebar" id="st-sidebar">
+      <nav aria-label={t('sidebar.label')}>
+        {groups.map((group) => (
+          <div class="st-sidebar__group">
+            <p class="st-sidebar__title">{t(`groups.${group.group}`)}</p>
+            <ul>
+              {group.items.map((item) => (
+                <li>
+                  <a
+                    href={localizedPath(`/docs/${item.slug}`, locale)}
+                    class:list={['st-sidebar__link', { 'is-active': item.slug === slug }]}
+                    aria-current={item.slug === slug ? 'page' : undefined}
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </aside>
+
+    <main class="st-content">
+      <article class="st-prose">
+        <slot />
+      </article>
+    </main>
+
+    <aside class="st-toc">
+      {toc.length > 0 && (
+        <nav aria-label={t('toc.title')}>
+          <p class="st-toc__title">{t('toc.title')}</p>
+          <ul>
+            {toc.map((h) => (
+              <li class:list={[`st-toc__d${h.depth}`]}>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .st-docs {
+    max-width: var(--st-maxw);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: var(--st-sidebar-w) minmax(0, 1fr) 220px;
+    gap: 2.4rem;
+    padding: 0 1.4rem;
+    align-items: start;
+  }
+
+  .st-sidebar {
+    position: sticky;
+    top: 74px;
+    align-self: start;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    padding: 1.6rem 0;
+    border-right: var(--st-border-w) dashed var(--st-border);
+  }
+  .st-sidebar__group { margin-bottom: 1.6rem; }
+  .st-sidebar__title {
+    font-family: var(--st-font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--st-fg-muted);
+    margin: 0 0 0.6rem;
+  }
+  .st-sidebar ul { list-style: none; margin: 0; padding: 0; }
+  .st-sidebar__link {
+    display: block;
+    padding: 0.32rem 0.7rem;
+    color: var(--st-fg-muted);
+    font-size: 0.9rem;
+    border-left: 2px solid transparent;
+  }
+  .st-sidebar__link:hover { color: var(--st-fg); text-decoration: none; border-left-color: var(--st-border-strong); }
+  .st-sidebar__link.is-active {
+    color: var(--st-accent);
+    border-left-color: var(--st-accent);
+    background: var(--st-yellow-soft);
+    font-weight: 600;
+  }
+
+  .st-content { padding: 2.4rem 0; min-width: 0; }
+  .st-prose { min-width: 0; }
+  .st-prose :global(p), .st-prose :global(li) { color: var(--st-fg); }
+  .st-prose :global(img) { max-width: 100%; border: var(--st-border-w) solid var(--st-border); }
+
+  .st-toc {
+    position: sticky;
+    top: 74px;
+    align-self: start;
+    padding: 2.4rem 0;
+    font-size: 0.82rem;
+  }
+  .st-toc__title {
+    font-family: var(--st-font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--st-fg-muted);
+    margin: 0 0 0.6rem;
+  }
+  .st-toc ul { list-style: none; margin: 0; padding: 0; }
+  .st-toc li { margin: 0.15rem 0; }
+  .st-toc a { color: var(--st-fg-muted); }
+  .st-toc a:hover { color: var(--st-accent); }
+  .st-toc__d3 { padding-left: 0.9rem; }
+
+  @media (max-width: 1080px) {
+    .st-docs { grid-template-columns: var(--st-sidebar-w) minmax(0, 1fr); }
+    .st-toc { display: none; }
+  }
+  @media (max-width: 880px) {
+    .st-docs { grid-template-columns: minmax(0, 1fr); }
+    .st-sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 60;
+      width: 80%;
+      max-width: 320px;
+      background: var(--st-bg-2);
+      border-right: var(--st-border-w) solid var(--st-accent);
+      padding: 1.6rem 1.2rem;
+      transform: translateX(-105%);
+      transition: transform 0.18s ease;
+    }
+    .st-sidebar.is-open { transform: translateX(0); }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const toggle = document.getElementById('st-menu-toggle')
+    const sidebar = document.getElementById('st-sidebar')
+    if (toggle && sidebar) {
+      toggle.addEventListener('click', () => sidebar.classList.toggle('is-open'))
+      sidebar.addEventListener('click', (e) => {
+        if (e.target instanceof HTMLAnchorElement) sidebar.classList.remove('is-open')
+      })
+    }
+  })()
+</script>

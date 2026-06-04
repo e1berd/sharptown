@@ -1,0 +1,48 @@
+---
+import { locales, localeNames, localizedPath, type Locale } from '../i18n/ui'
+
+/**
+ * Language switcher. Links to the same logical page (`path`, locale-agnostic and
+ * leading-slash) in every locale. The active locale is highlighted.
+ */
+interface Props {
+  locale: Locale
+  path: string
+}
+const { locale, path } = Astro.props
+---
+
+<div class="st-lang" role="group" aria-label="Language">
+  {locales.map((code) => (
+    <a
+      href={localizedPath(path, code)}
+      class:list={['st-lang__opt', { 'is-active': code === locale }]}
+      hreflang={code}
+      aria-current={code === locale ? 'true' : undefined}
+    >
+      {code.toUpperCase()}
+      <span class="st-lang__full">{localeNames[code]}</span>
+    </a>
+  ))}
+</div>
+
+<style>
+  .st-lang {
+    display: inline-flex;
+    border: var(--st-border-w) solid var(--st-border-strong);
+  }
+  .st-lang__opt {
+    font-family: var(--st-font-mono);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.5em 0.7em;
+    color: var(--st-fg-muted);
+    background: var(--st-bg-2);
+    border-right: 1px solid var(--st-border);
+  }
+  .st-lang__opt:last-child { border-right: 0; }
+  .st-lang__opt:hover { color: var(--st-accent); text-decoration: none; }
+  .st-lang__opt.is-active { background: var(--st-accent); color: var(--st-accent-fg); }
+  .st-lang__full { display: none; }
+</style>

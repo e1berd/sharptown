@@ -1,0 +1,32 @@
+---
+import { getCollection, render } from 'astro:content'
+import DocsLayout from '../../../layouts/DocsLayout.astro'
+
+/**
+ * Statically renders the Russian docs at `/ru/docs/<slug>`. Mirrors the English route,
+ * filtered to `ru/` entries.
+ */
+export async function getStaticPaths() {
+  const entries = await getCollection('docs')
+  return entries
+    .filter((entry) => entry.id.startsWith('ru/'))
+    .map((entry) => ({
+      params: { slug: entry.id.slice('ru/'.length) },
+      props: { entry },
+    }))
+}
+
+const { entry } = Astro.props
+const { Content, headings } = await render(entry)
+const slug = entry.id.slice('ru/'.length)
+---
+
+<DocsLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  locale="ru"
+  slug={slug}
+  headings={headings}
+>
+  <Content />
+</DocsLayout>

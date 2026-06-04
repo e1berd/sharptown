@@ -1,0 +1,116 @@
+---
+import ThemeToggle from './ThemeToggle.astro'
+import LangSwitcher from './LangSwitcher.astro'
+import { useTranslations, localizedPath, type Locale } from '../i18n/ui'
+import { REPO_URL, SOURCECRAFT_URL } from '../lib/links'
+
+/**
+ * Top navigation bar. `showMenuToggle` enables the mobile sidebar trigger on docs pages.
+ * `path` is the locale-agnostic path of the current page, used by the language switcher.
+ */
+interface Props {
+  locale: Locale
+  path: string
+  showMenuToggle?: boolean
+}
+const { locale, path, showMenuToggle = false } = Astro.props
+const t = useTranslations(locale)
+const link = (p: string) => localizedPath(p, locale)
+---
+
+<header class="st-header">
+  <div class="st-header__inner">
+    <a class="st-brand" href={link('/')}>
+      <span class="st-brand__mark" aria-hidden="true">◣</span>
+      <span class="st-brand__name">sharp<span>town</span></span>
+    </a>
+
+    <nav class="st-header__nav" aria-label="Primary">
+      <a href={link('/docs/introduction')}>{t('nav.docs')}</a>
+      <a href={link('/docs/rest-api')}>{t('nav.api')}</a>
+      <a href={link('/docs/js-client')}>{t('nav.client')}</a>
+      <a href={link('/playground')}>{t('nav.playground')}</a>
+      <a href={REPO_URL} target="_blank" rel="noopener">{t('nav.github')}</a>
+      <a href={SOURCECRAFT_URL} target="_blank" rel="noopener">{t('nav.sourcecraft')}</a>
+    </nav>
+
+    <div class="st-header__actions">
+      <LangSwitcher locale={locale} path={path} />
+      <ThemeToggle label={t('theme.label')} />
+      {showMenuToggle && (
+        <button id="st-menu-toggle" class="st-menu-toggle" type="button" aria-label="Toggle navigation">
+          {t('menu.label')}
+        </button>
+      )}
+    </div>
+  </div>
+</header>
+
+<style>
+  .st-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--st-bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: var(--st-border-w) solid var(--st-border-strong);
+  }
+  .st-header__inner {
+    max-width: var(--st-maxw);
+    margin: 0 auto;
+    padding: 0.7rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+  }
+  .st-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    color: var(--st-fg);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 1.15rem;
+  }
+  .st-brand:hover { text-decoration: none; }
+  .st-brand__mark {
+    display: inline-grid;
+    place-items: center;
+    width: 1.7em;
+    height: 1.7em;
+    background: var(--st-accent);
+    color: var(--st-accent-fg);
+    font-size: 0.9em;
+  }
+  .st-brand__name span { color: var(--st-accent); }
+
+  .st-header__nav {
+    display: flex;
+    gap: 1.3rem;
+    margin-left: auto;
+    font-family: var(--st-font-mono);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .st-header__nav a { color: var(--st-fg-muted); }
+  .st-header__nav a:hover { color: var(--st-accent); text-decoration: none; }
+
+  .st-header__actions { display: flex; align-items: center; gap: 0.7rem; }
+  .st-menu-toggle {
+    display: none;
+    font-family: var(--st-font-mono);
+    font-weight: 700;
+    padding: 0.5em 0.8em;
+    border: var(--st-border-w) solid var(--st-border-strong);
+    background: var(--st-bg-2);
+    color: var(--st-fg);
+    cursor: pointer;
+  }
+
+  @media (max-width: 980px) {
+    .st-header__nav { display: none; }
+  }
+  @media (max-width: 880px) {
+    .st-menu-toggle { display: inline-block; }
+  }
+</style>

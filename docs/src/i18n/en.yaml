@@ -1,0 +1,108 @@
+localeName: English
+
+nav:
+  docs: Docs
+  api: API
+  client: Client
+  playground: Playground
+  github: GitHub ↗
+  sourcecraft: SourceCraft ↗
+
+theme:
+  label: Theme
+
+menu:
+  label: ≡ Menu
+
+footer:
+  builtWith: Built with Astro · MIT License
+
+sidebar:
+  label: Documentation
+
+toc:
+  title: On this page
+
+groups:
+  Introduction: Introduction
+  Guide: Guide
+  Transports: Transports
+  Recipes: Recipes
+  Operations: Operations
+
+home:
+  meta_description: Sharptown — high-performance image transformation & delivery.
+  tag: Image transformation engine
+  title_before: 'Make your photos '
+  title_highlight: web-fast
+  title_after: .
+  lead_html: >-
+    Sharptown turns any photo into an optimized format like <code>webp</code> in a single
+    request. At its core it is about <strong>image delivery optimization</strong> — but
+    with a running server and the JS client, you can build a complete in-browser photo
+    editor on top.
+  cta_docs: Read the docs →
+  cta_playground: Open playground
+  band:
+    - { strong: 'WebP · AVIF · PNG · JPEG · GIF · HEIF', label: output formats }
+    - { strong: '0 bytes buffered', label: gRPC streaming }
+    - { strong: 'Browser · Node · Bun · Deno', label: isomorphic client }
+    - { strong: '1 register()', label: Fastify plugin }
+  features_heading: What you can do
+  features:
+    - mark: ⤓
+      title: Optimize delivery
+      body: Convert any upload to WebP, AVIF, PNG, JPEG, GIF or HEIF on the fly. Smaller bytes, faster pages, lower bandwidth bills.
+    - mark: ⟳
+      title: Transform on demand
+      body: Resize, rotate, flip, blur, grayscale, tint and alpha control — composed in a single request, powered by libvips via Sharp.
+    - mark: ◫
+      title: Three transports
+      body: REST, gRPC bidirectional streaming, and JSON-RPC over WebSocket. One framework-agnostic core engine behind all of them.
+    - mark: ⌘
+      title: Build a photo editor
+      body: A running server plus the isomorphic JS client is everything you need to build a full in-browser editor — not just a CDN.
+    - mark: ∞
+      title: Any file size
+      body: The gRPC host streams chunks straight into Sharp and never buffers the whole file — process multi-gigabyte maps without OOM.
+    - mark: ▤
+      title: Drop-in plugin
+      body: Ship the transform route into any Fastify app with one register() call, or write a thin adapter for Hono, Elysia or Express.
+  cta_title: From CDN to full editor.
+  cta_body: >-
+    Start by shaving bytes off your image delivery. When you are ready, the same server and
+    client become the backbone of an interactive editor.
+  cta_get_started: Get started
+  cta_build_editor: Build an editor
+
+playground_page:
+  meta_description: Build a Sharptown transform chain and run it against your server, right in the browser.
+  tag: Interactive
+  title: Transform Playground
+  lead: >-
+    Compose operations, watch the request URL and client code build themselves, then run it
+    against a live Sharptown server. This page is fully static — the transform runs in your
+    browser against the server you point it at.
+
+playground:
+  server_image: Server & image
+  server_url: Server URL
+  image_file: Image file
+  operations: Operations
+  flip: flip
+  grayscale: grayscale
+  remove_alpha: removeAlpha
+  ensure_alpha: ensureAlpha
+  keep: (keep)
+  run: Run transform ▸
+  running: Transforming…
+  pick_first: Pick an image first.
+  request_url: Request URL
+  client_code: Client code
+  copy: copy
+  result: Result
+  source: Source
+  result_label: Result
+  hint_html: >-
+    Tip: run a Sharptown REST server (<code>pnpm dev</code>) and point the URL at it.
+    Everything here runs in your browser.
