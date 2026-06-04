@@ -43,6 +43,69 @@ curl -X POST \
   "http://localhost:3000/api/v1/transform?width=500&blur=3&convertTo=webp"
 ```
 
+## 🛰️ gRPC API (streaming, для файлов любого размера)
+
+Помимо REST доступен gRPC-сервис `ImageProcessor` с **двунаправленным стримингом**.
+Он спроектирован под файлы произвольного размера (например, карта PNG ~3 ГБ → WebP/JPEG):
+данные передаются чанками и **никогда не собираются целиком в память** — входной поток
+пайпится прямо в Sharp, а результат отдаётся обратно потоком чанков. Backpressure
+соблюдается в обе стороны.
+
+Контракт — в [`proto/sharptown.proto`](proto/sharptown.proto):
+
+```proto
+service ImageProcessor {
+  // Первое сообщение — options, последующие — chunk'и байт.
+  rpc Transform(stream TransformRequest) returns (stream TransformResponse);
+}
+```
+
+Опции `TransformOptions` паритетны REST `/api/v1/transform` (`width`, `height`,
+`rotate`, `flip`, `blur`, `tint_r/g/b`, `grayscale`, `remove_alpha`, `ensure_alpha`,
+`convert_to`).
+
+### Запуск
+
+```bash
+npm install
+cp .env.example .env
+npm run grpc:dev        # dev (watch)
+# или: npm run grpc     # prod
+```
+
+Порт настраивается через `SHARPTOWN_GRPC_PORT` (по умолчанию `50051`) и
+`SHARPTOWN_GRPC_HOST` (по умолчанию `0.0.0.0`). REST (`index.mjs`) и gRPC (`grpc.mjs`) —
+независимые процессы.
+
+### Пример клиента (Node.js)
+
+```js
+import * as grpc from '@grpc/grpc-js'
+import protoLoader from '@grpc/proto-loader'
+import { createReadStream, createWriteStream } from 'node:fs'
+
+const def = protoLoader.loadSync('proto/sharptown.proto', { keepCase: false, oneofs: true, defaults: true })
+const { sharptown } = grpc.loadPackageDefinition(def)
+const client = new sharptown.v1.ImageProcessor('localhost:50051', grpc.credentials.createInsecure())
+
+const call = client.Transform()
+call.on('data', ({ chunk }) => out.write(chunk))
+const out = createWriteStream('map.webp')
+call.on('end', () => out.end())
+
+// 1) options, 2) поток байт исходника
+call.write({ options: { width: 4096, convertTo: 'webp' } })
+const src = createReadStream('map-3gb.png')
+src.on('data', (chunk) => call.write({ chunk }))
+src.on('end', () => call.end())
+```
+
+> **Заметки о больших файлах.** Память ограничена за счёт стриминга + `sequentialRead`.
+> Учтите лимиты форматов вывода: WebP — до 16383×16383 px, JPEG — до 65535×65535 px.
+> Если по пикселям карта превышает лимит WebP, выбирайте JPEG или ресайз в том же запросе.
+> Для гигабайтных карт предпочтительны `resize`/`convert`/`flip`; произвольный `rotate`
+> может потребовать больше памяти.
+
 ## 🚀 Getting Started
 Local Development
 ```bash

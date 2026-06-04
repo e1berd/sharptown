@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package sharptown.v1;
+
+// Сервис обработки изображений на базе sharp.
+// Транспорт спроектирован под файлы ЛЮБОГО размера: данные передаются
+// двунаправленным стримингом чанками и никогда не собираются целиком в память.
+service ImageProcessor {
+  // Первое сообщение клиента должно содержать `options`,
+  // все последующие — `chunk` с байтами исходного файла.
+  // Сервер отдаёт результат потоком `chunk`'ов.
+  rpc Transform(stream TransformRequest) returns (stream TransformResponse);
+}
+
+// Набор операций, паритетный с REST-эндпоинтом /api/v1/transform.
+message TransformOptions {
+  optional uint32 width        = 1;
+  optional uint32 height       = 2;
+  optional int32  rotate       = 3;
+  bool            flip         = 4;
+  optional uint32 blur         = 5;
+  optional uint32 tint_r       = 6;
+  optional uint32 tint_g       = 7;
+  optional uint32 tint_b       = 8;
+  bool            grayscale    = 9;
+  bool            remove_alpha = 10;
+  bool            ensure_alpha = 11;
+  // Целевой формат: webp/png/jpg/jpeg/avif/gif/heif. Пусто — формат не меняется.
+  string          convert_to   = 12;
+}
+
+message TransformRequest {
+  oneof payload {
+    TransformOptions options = 1; // ровно первое сообщение
+    bytes            chunk   = 2; // последующие сообщения с данными
+  }
+}
+
+message TransformResponse {
+  bytes chunk = 1;
+}
