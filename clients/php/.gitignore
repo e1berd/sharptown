@@ -1,0 +1,4 @@
+/vendor/
+/composer.lock
+/examples/out-*.webp
+/examples/out-*.png

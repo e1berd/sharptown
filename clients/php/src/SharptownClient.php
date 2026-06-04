@@ -30,22 +30,30 @@ final class SharptownClient
     private int $timeout;
 
     /**
-     * @param array{transport?: Transport, headers?: array<string, string>, timeout?: int} $options
+     * @param array<string, string> $headers Default headers sent with every request.
      */
-    public function __construct(string $url, array $options = [])
-    {
+    public function __construct(
+        string $url,
+        ?Transport $transport = null,
+        array $headers = [],
+        int $timeout = 30,
+    ) {
         $this->baseUrl = self::normalizeBaseUrl($url);
-        $this->transport = $options['transport'] ?? new RestTransport();
-        $this->headers = $options['headers'] ?? [];
-        $this->timeout = $options['timeout'] ?? 30;
+        $this->transport = $transport ?? new RestTransport();
+        $this->headers = $headers;
+        $this->timeout = $timeout;
     }
 
     /**
-     * @param array{transport?: Transport, headers?: array<string, string>, timeout?: int} $options
+     * @param array<string, string> $headers Default headers sent with every request.
      */
-    public static function create(string $url, array $options = []): self
-    {
-        return new self($url, $options);
+    public static function create(
+        string $url,
+        ?Transport $transport = null,
+        array $headers = [],
+        int $timeout = 30,
+    ): self {
+        return new self($url, $transport, $headers, $timeout);
     }
 
     /** The server base URL. */
@@ -58,12 +66,12 @@ final class SharptownClient
      * Starts an image transformation chain.
      *
      * @param string|ImageInput|SplFileInfo $input The image source (URL, path, or {@link ImageInput}).
-     * @param array{filename?: string} $options
+     * @param string|null $filename File name used in the multipart request.
      *
      * @example
      * $st->transform($file)->resize(400)->blur(2)->convert('webp')->toFile('out.webp');
      */
-    public function transform(string|ImageInput|SplFileInfo $input, array $options = []): TransformBuilder
+    public function transform(string|ImageInput|SplFileInfo $input, ?string $filename = null): TransformBuilder
     {
         return new TransformBuilder(
             $this->transport,
@@ -71,7 +79,7 @@ final class SharptownClient
             $this->headers,
             $this->timeout,
             ImageInput::from($input),
-            $options['filename'] ?? null,
+            $filename,
         );
     }
 
@@ -79,11 +87,13 @@ final class SharptownClient
      * Shortcut: format conversion only.
      *
      * @param string|ImageInput|SplFileInfo $input
-     * @param array{filename?: string} $options
      */
-    public function convert(string|ImageInput|SplFileInfo $input, string $format, array $options = []): TransformBuilder
-    {
-        return $this->transform($input, $options)->convert($format);
+    public function convert(
+        string|ImageInput|SplFileInfo $input,
+        string $format,
+        ?string $filename = null,
+    ): TransformBuilder {
+        return $this->transform($input, $filename)->convert($format);
     }
 
     /**
@@ -91,15 +101,14 @@ final class SharptownClient
      *
      * @param string|ImageInput|SplFileInfo $input
      * @param int|array{width?: int, height?: int} $width
-     * @param array{filename?: string} $options
      */
     public function resize(
         string|ImageInput|SplFileInfo $input,
         int|array $width,
         ?int $height = null,
-        array $options = [],
+        ?string $filename = null,
     ): TransformBuilder {
-        return $this->transform($input, $options)->resize($width, $height);
+        return $this->transform($input, $filename)->resize($width, $height);
     }
 
     private static function normalizeBaseUrl(string $url): string

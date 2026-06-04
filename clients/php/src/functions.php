@@ -6,47 +6,42 @@ namespace Sharptown\Client;
 
 use Sharptown\Client\Transport\JsonRpcTransport;
 use Sharptown\Client\Transport\RestTransport;
+use Sharptown\Client\Transport\Transport;
 
 if (!function_exists('Sharptown\Client\sharptown')) {
     /**
      * Creates a Sharptown client.
      *
-     * @param array{transport?: Transport\Transport, headers?: array<string, string>, timeout?: int} $options
+     * @param array<string, string> $headers Default headers sent with every request.
      *
      * @example
-     * use function Sharptown\Client\sharptown;
+     * use function Sharptown\Client\{sharptown, jsonrpc};
      *
      * $st = sharptown('http://localhost:3001');
-     * $webp = $st->transform('photo.jpg')->resize(800)->convert('webp')->bytes();
+     * $rpc = sharptown('ws://localhost:3002', transport: jsonrpc());
      */
-    function sharptown(string $url, array $options = []): SharptownClient
-    {
-        return new SharptownClient($url, $options);
+    function sharptown(
+        string $url,
+        ?Transport $transport = null,
+        array $headers = [],
+        int $timeout = 30,
+    ): SharptownClient {
+        return new SharptownClient($url, $transport, $headers, $timeout);
     }
 
     /**
      * The REST transport (default).
-     *
-     * @param array{path?: string, field?: string} $options
      */
-    function rest(array $options = []): RestTransport
+    function rest(string $path = '/api/v1/transform', string $field = 'image'): RestTransport
     {
-        return new RestTransport(
-            $options['path'] ?? '/api/v1/transform',
-            $options['field'] ?? 'image',
-        );
+        return new RestTransport($path, $field);
     }
 
     /**
      * The JSON-RPC over WebSocket transport.
-     *
-     * @param array{path?: string, method?: string} $options
      */
-    function jsonrpc(array $options = []): JsonRpcTransport
+    function jsonrpc(string $path = '/rpc', string $method = 'image.transform'): JsonRpcTransport
     {
-        return new JsonRpcTransport(
-            $options['path'] ?? '/rpc',
-            $options['method'] ?? 'image.transform',
-        );
+        return new JsonRpcTransport($path, $method);
     }
 }

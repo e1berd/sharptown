@@ -32,7 +32,7 @@ $capture = new class implements Transport {
     }
 };
 
-$st = sharptown('http://localhost:3001/', ['transport' => $capture]);
+$st = sharptown('http://localhost:3001/', transport: $capture);
 
 $bytes = $st->transform(ImageInput::fromString('rawpngbytes', 'in.png'))
     ->resize(800, 600)

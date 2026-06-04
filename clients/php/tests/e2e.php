@@ -59,7 +59,7 @@ try {
 $check('REST rejects a corrupt image', $threw, 'status ' . var_export($status, true));
 
 echo PHP_EOL . '== JSON-RPC ==' . PHP_EOL;
-$rpc = sharptown('ws://localhost:3002', ['transport' => jsonrpc()]);
+$rpc = sharptown('ws://localhost:3002', transport: jsonrpc());
 
 $res = $rpc->transform(ImageInput::fromString($png, 'in.png'))
     ->resize(50)
