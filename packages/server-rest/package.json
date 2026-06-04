@@ -1,7 +1,6 @@
 {
   "name": "@sharptown/server-rest",
   "version": "1.0.0",
-  "private": true,
   "type": "module",
   "scripts": {
     "dev:env": "node --watch --env-file=../../.env index.mjs",

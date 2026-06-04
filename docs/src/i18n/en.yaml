@@ -47,11 +47,11 @@ home:
     - { strong: '0 bytes buffered', label: gRPC streaming }
     - { strong: 'Browser · Node · Bun · Deno', label: isomorphic client }
     - { strong: '1 register()', label: Fastify plugin }
-  features_heading: What you can do
+  features_heading: Capabilities
   features:
     - mark: ⤓
       title: Optimize delivery
-      body: Convert any upload to WebP, AVIF, PNG, JPEG, GIF or HEIF on the fly. Smaller bytes, faster pages, lower bandwidth bills.
+      body: Convert uploaded images to WebP, AVIF, PNG, JPEG, GIF or HEIF on the fly. Smaller files mean less bandwidth and faster page loads.
     - mark: ⟳
       title: Transform on demand
       body: Resize, rotate, flip, blur, grayscale, tint and alpha control — composed in a single request, powered by libvips via Sharp.
@@ -60,10 +60,10 @@ home:
       body: REST, gRPC bidirectional streaming, and JSON-RPC over WebSocket. One framework-agnostic core engine behind all of them.
     - mark: ⌘
       title: Build a photo editor
-      body: A running server plus the isomorphic JS client is everything you need to build a full in-browser editor — not just a CDN.
+      body: A running server and the isomorphic JS client also cover an in-browser editor, not just a CDN.
     - mark: ∞
       title: Any file size
-      body: The gRPC host streams chunks straight into Sharp and never buffers the whole file — process multi-gigabyte maps without OOM.
+      body: The gRPC host streams chunks straight into Sharp without buffering the whole file, so multi-gigabyte images process without running out of memory.
     - mark: ▤
       title: Drop-in plugin
       body: Ship the transform route into any Fastify app with one register() call, or write a thin adapter for Hono, Elysia or Express.

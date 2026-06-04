@@ -115,7 +115,12 @@ const path = `/docs/${slug}`
     font-weight: 600;
   }
 
-  .st-content { padding: 2.4rem 0; min-width: 0; }
+  .st-content {
+    padding: 2.4rem 2rem;
+    min-width: 0;
+    background: var(--st-bg);
+    border-inline: var(--st-border-w) solid var(--st-border);
+  }
   .st-prose { min-width: 0; }
   .st-prose :global(p), .st-prose :global(li) { color: var(--st-fg); }
   .st-prose :global(img) { max-width: 100%; border: var(--st-border-w) solid var(--st-border); }
