@@ -1,151 +1,199 @@
-# 🏙️ Sharptown — Fastify Image Transformer API & Plugin
+# Sharptown
 
-A high-performance image transformation and conversion service powered by Fastify + Sharp.
-Resize, rotate, blur, grayscale, modify alpha, convert formats — all on-the-fly via REST API.
+Sharptown: сервис и набор пакетов для преобразования изображений на базе
+[Sharp](https://sharp.pixelplumbing.com). Он умеет менять размер, кадрировать,
+поворачивать, применять фильтры, управлять альфа-каналом и конвертировать изображения
+между форматами через REST, gRPC, JSON-RPC или JavaScript-клиент.
 
-Perfect for web developers optimizing image delivery 🚀
+Проект оформлен как pnpm-монорепозиторий. Общая логика обработки живет в
+`@sharptown/core`, а серверные пакеты и клиенты используют ее как единый движок.
 
-## 📦 Monorepo
+## Пакеты
 
-This is a [pnpm](https://pnpm.io) workspace:
+| Пакет | Путь | Назначение |
+| ----- | ---- | ---------- |
+| `@sharptown/core` | [`packages/core`](packages/core) | Независимый от фреймворков движок преобразований поверх Sharp |
+| `@sharptown/fastify-plugin` | [`packages/fastify`](packages/fastify) | Fastify-плагин с REST-эндпоинтом `POST /transform` |
+| `@sharptown/client` | [`packages/client`](packages/client) | Изоморфный JS-клиент для браузера, Node.js, Bun и Deno |
+| `@sharptown/server-rest` | [`packages/server-rest`](packages/server-rest) | REST-сервер на Fastify с подключенным плагином и статическим UI |
+| `@sharptown/server-grpc` | [`packages/server-grpc`](packages/server-grpc) | gRPC-сервер с потоковой обработкой файлов |
+| `@sharptown/server-jsonrpc` | [`packages/server-jsonrpc`](packages/server-jsonrpc) | JSON-RPC 2.0 через WebSocket |
+| `@sharptown/example-vue` | [`examples/vue`](examples/vue) | Vue 3 + Vite пример с использованием JS-клиента |
 
-| Package | Path | Description |
-| ------- | ---- | ----------- |
-| `@sharptown/core` | [`packages/core`](packages/core) | Framework-agnostic Sharp engine — shared by every adapter |
-| `@sharptown/fastify-plugin` | [`packages/fastify`](packages/fastify) | Fastify plugin (REST `/transform`) on top of core |
-| `@sharptown/client` | [`packages/client`](packages/client) | Expressive isomorphic JS client (browser / Node / Bun / Deno) |
-| `@sharptown/server-rest` | [`packages/server-rest`](packages/server-rest) | REST host (Fastify + plugin + static UI) |
-| `@sharptown/server-grpc` | [`packages/server-grpc`](packages/server-grpc) | gRPC streaming host |
-| `@sharptown/server-jsonrpc` | [`packages/server-jsonrpc`](packages/server-jsonrpc) | JSON-RPC 2.0 over WebSocket host |
-| `@sharptown/example-vue` | [`examples/vue`](examples/vue) | Vue 3 + Vite demo using the client |
+## Возможности
 
-```bash
-pnpm install     # install all workspaces
-pnpm dev         # REST server in watch mode (port 3001)
-pnpm grpc        # gRPC server (port 50051)
-pnpm jsonrpc     # JSON-RPC/WebSocket server (port 3002)
-pnpm build       # emit type declarations for all packages
-```
+- Конвертация в поддерживаемые Sharp форматы: WebP, PNG, JPEG, GIF, AVIF, HEIF и другие.
+- Изменение размера: `width`, `height`, `dpr`, `aspectRatio`, `fit`, `background`.
+- Кадрирование: `crop`, `cropOffset`, `smartCrop`.
+- Ориентация: `autoOrient`, `rotate`, `flip`.
+- Тон и цвет: `brightness`, `contrast`, `saturation`, `exposure`, `hue`, `gamma`,
+  `colorize`, RGB `tint`, `grayscale`.
+- Фильтры и эффекты: `blur`, `sharpen`, `sepia`, `invert`, `threshold`, `oilPaint`.
+- Управление выводом: `convertTo`, `quality`, `progressive`, `stripMetadata`.
+- Управление альфа-каналом: `removeAlpha`, `ensureAlpha`.
+- Одинаковая модель операций для REST, gRPC, JSON-RPC и JS-клиента.
+- Запуск локально или через Docker Compose.
 
-The three transports are **independent server packages**, all sharing `@sharptown/core`.
-
-
-## ✨ Features
-- Convert any supported format to any other (WebP, PNG, JPEG, GIF, AVIF, HEIF)
-- Resize: `width` / `height` / `dpr` / `aspectRatio`, with `fit` modes and `background`
-- Crop: `crop` (`x,y,w,h` or `WxH`+`cropOffset`) and attention-based `smartCrop`
-- Orientation: `autoOrient` (EXIF), `rotate`, `flip`
-- Tone & color: `brightness`, `contrast`, `saturation`, `exposure`, `hue`, `gamma`, `colorize`, RGB `tint`, `grayscale`
-- Filters & effects: `blur`, `sharpen`, `sepia`, `invert`, `threshold`, `oilPaint`
-- Output control: `quality`, `progressive`, `stripMetadata`
-- Alpha control: `removeAlpha` / `ensureAlpha`
-- Same operations across REST, gRPC and JSON-RPC
-- Docker-ready
-- Fully configurable via `.env`
-
-## 📡 API Endpoints
-### 🔄 Transform Image — POST /api/v1/transform
-
-Upload an image and apply any transformations through query parameters.
-
-| Name                      | Type    | Description                                              |
-| ------------------------- | ------- | -------------------------------------------------------- |
-| `width`                   | number  | Resize width                                             |
-| `height`                  | number  | Resize height                                            |
-| `rotate`                  | number  | Rotate (°)                                               |
-| `flip`                    | boolean | Flip horizontally                                        |
-| `blur`                    | number  | Blur radius                                              |
-| `r`, `g`, `b`             | number  | RGB tint                                                 |
-| `grayscale` / `greyscale` | boolean | Convert to grayscale                                     |
-| `removeAlpha`             | boolean | Remove alpha channel                                     |
-| `ensureAlpha`             | boolean | Ensure alpha channel                                     |
-| `convertTo`               | string  | Output format: `webp`, `png`, `jpg`, `gif`, `avif`, etc. |
-
-
-## Example Request
-```bash
-curl -X POST \
-  -F "image=@input.jpg" \
-  "http://localhost:3000/api/v1/transform?width=500&blur=3&convertTo=webp"
-```
-
-## 🛰️ gRPC API (streaming, для файлов любого размера)
-
-Помимо REST доступен gRPC-сервис `ImageProcessor` с **двунаправленным стримингом**.
-Он спроектирован под файлы произвольного размера (например, карта PNG ~3 ГБ → WebP/JPEG):
-данные передаются чанками и **никогда не собираются целиком в память** — входной поток
-пайпится прямо в Sharp, а результат отдаётся обратно потоком чанков. Backpressure
-соблюдается в обе стороны.
-
-Контракт — в [`packages/server-grpc/proto/sharptown.proto`](packages/server-grpc/proto/sharptown.proto):
-
-```proto
-service ImageProcessor {
-  // Первое сообщение — options, последующие — chunk'и байт.
-  rpc Transform(stream TransformRequest) returns (stream TransformResponse);
-}
-```
-
-Опции `TransformOptions` паритетны REST `/api/v1/transform` (`width`, `height`,
-`rotate`, `flip`, `blur`, `tint_r/g/b`, `grayscale`, `remove_alpha`, `ensure_alpha`,
-`convert_to`).
-
-### Запуск
+## Быстрый старт
 
 ```bash
 pnpm install
 cp .env.example .env
-pnpm grpc        # dev (watch)
+pnpm dev
 ```
 
-Порт настраивается через `SHARPTOWN_GRPC_PORT` (по умолчанию `50051`) и
-`SHARPTOWN_GRPC_HOST` (по умолчанию `0.0.0.0`). REST, gRPC и JSON-RPC — это **три
-независимых пакета-сервера** (`@sharptown/server-rest`, `@sharptown/server-grpc`,
-`@sharptown/server-jsonrpc`), каждый запускается отдельно.
+По умолчанию REST-сервер слушает `http://localhost:3001`.
 
-### Пример клиента (Node.js)
+Основные команды:
+
+```bash
+pnpm dev         # REST-сервер в watch-режиме, порт 3001
+pnpm grpc        # gRPC-сервер, порт 50051
+pnpm jsonrpc     # JSON-RPC-сервер через WebSocket, порт 3002
+pnpm docs        # локальная документация
+pnpm build       # сборка всех пакетов
+```
+
+REST, gRPC и JSON-RPC являются независимыми серверными пакетами. Каждый запускается отдельно и
+использует общий `@sharptown/core`.
+
+## REST API
+
+REST-сервер предоставляет эндпоинт:
+
+```http
+POST /api/v1/transform
+```
+
+Изображение передается multipart-полем `image`, операции передаются query-параметрами.
+
+| Параметр | Тип | Описание |
+| -------- | --- | -------- |
+| `width` | number | Ширина результата |
+| `height` | number | Высота результата |
+| `rotate` | number | Поворот в градусах |
+| `flip` | boolean | Горизонтальное отражение |
+| `blur` | number | Радиус размытия |
+| `r`, `g`, `b` | number | RGB-оттенок |
+| `grayscale`, `greyscale` | boolean | Перевод в оттенки серого |
+| `removeAlpha` | boolean | Удаление альфа-канала |
+| `ensureAlpha` | boolean | Добавление альфа-канала |
+| `convertTo` | string | Формат вывода: `webp`, `png`, `jpg`, `gif`, `avif` и другие |
+
+Пример запроса:
+
+```bash
+curl -X POST \
+  -F "image=@input.jpg" \
+  "http://localhost:3001/api/v1/transform?width=500&blur=3&convertTo=webp" \
+  -o out.webp
+```
+
+Успешный ответ содержит бинарное изображение с корректным `content-type`. Ошибки
+возвращаются в JSON:
+
+```json
+{
+  "error": "Unsupported format"
+}
+```
+
+Подробные параметры описаны в [`docs/src/content/docs/ru/rest-api.md`](docs/src/content/docs/ru/rest-api.md)
+и [`docs/src/content/docs/ru/operations.md`](docs/src/content/docs/ru/operations.md).
+
+## gRPC API
+
+Пакет [`@sharptown/server-grpc`](packages/server-grpc) предоставляет сервис
+`ImageProcessor` с двунаправленным стримингом. Входной файл передается чанками, результат
+возвращается тоже чанками, поэтому сервер не собирает все изображение целиком в память.
+
+Контракт находится в [`packages/server-grpc/proto/sharptown.proto`](packages/server-grpc/proto/sharptown.proto):
+
+```proto
+service ImageProcessor {
+  rpc Transform(stream TransformRequest) returns (stream TransformResponse);
+}
+```
+
+Запуск:
+
+```bash
+pnpm grpc
+```
+
+По умолчанию gRPC-сервер слушает `0.0.0.0:50051`. Хост и порт настраиваются через
+`SHARPTOWN_GRPC_HOST` и `SHARPTOWN_GRPC_PORT`.
+
+Пример клиента на Node.js:
 
 ```js
 import * as grpc from '@grpc/grpc-js'
 import protoLoader from '@grpc/proto-loader'
 import { createReadStream, createWriteStream } from 'node:fs'
 
-const def = protoLoader.loadSync('packages/server-grpc/proto/sharptown.proto', { keepCase: false, oneofs: true, defaults: true })
+const def = protoLoader.loadSync('packages/server-grpc/proto/sharptown.proto', {
+  keepCase: false,
+  oneofs: true,
+  defaults: true,
+})
 const { sharptown } = grpc.loadPackageDefinition(def)
-const client = new sharptown.v1.ImageProcessor('localhost:50051', grpc.credentials.createInsecure())
+const client = new sharptown.v1.ImageProcessor(
+  'localhost:50051',
+  grpc.credentials.createInsecure(),
+)
 
-const call = client.Transform()
-call.on('data', ({ chunk }) => out.write(chunk))
 const out = createWriteStream('map.webp')
+const call = client.Transform()
+
+call.on('data', ({ chunk }) => out.write(chunk))
 call.on('end', () => out.end())
 
-// 1) options, 2) поток байт исходника
 call.write({ options: { width: 4096, convertTo: 'webp' } })
+
 const src = createReadStream('map-3gb.png')
 src.on('data', (chunk) => call.write({ chunk }))
 src.on('end', () => call.end())
 ```
 
-> **Заметки о больших файлах.** Память ограничена за счёт стриминга + `sequentialRead`.
-> Учтите лимиты форматов вывода: WebP — до 16383×16383 px, JPEG — до 65535×65535 px.
-> Если по пикселям карта превышает лимит WebP, выбирайте JPEG или ресайз в том же запросе.
-> Для гигабайтных карт предпочтительны `resize`/`convert`/`flip`; произвольный `rotate`
-> может потребовать больше памяти.
+Для больших файлов учитывайте ограничения форматов вывода. Например, WebP ограничен
+размером `16383x16383` пикселей, JPEG ограничен `65535x65535` пикселей. Если изображение больше
+лимита WebP, используйте JPEG или уменьшайте размер в том же запросе.
 
-## 🚀 Getting Started
-Local Development
-```bash
-git clone https://github.com/eckeriaue/sharptown.git
-cd sharptown
-pnpm install
-cp .env.example .env
-pnpm dev
+## JSON-RPC через WebSocket
+
+Пакет [`@sharptown/server-jsonrpc`](packages/server-jsonrpc) предоставляет метод
+`image.transform` через JSON-RPC 2.0 поверх WebSocket:
+
+```text
+ws://localhost:3002/rpc
 ```
 
-## 🧑‍💻 JS Client — `@sharptown/client`
+Запуск:
 
-An expressive, isomorphic client (browser / Node / Bun / Deno). Full docs in
-[`packages/client`](packages/client).
+```bash
+pnpm jsonrpc
+```
+
+Файл передается как base64-строка в `params.image`, операции передаются в `params.options`.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "image.transform",
+  "params": {
+    "image": "<base64>",
+    "options": { "width": 200, "convertTo": "webp" }
+  }
+}
+```
+
+Подробности: [`packages/server-jsonrpc`](packages/server-jsonrpc).
+
+## JS-клиент
+
+[`@sharptown/client`](packages/client): изоморфный JavaScript-клиент без зависимостей.
+Он работает в браузере, Node.js, Bun и Deno, использует `fetch` и `FormData`.
 
 ```js
 import { sharptown } from '@sharptown/client'
@@ -160,83 +208,101 @@ const webp = await st
   .convert('webp')
 ```
 
-## 🎛️ Vue Example
-A full Vue 3 + Vite demo lives in [`examples/vue`](examples/vue) — pick an image, chain
-operations, and see the result live. With the server running:
+Цепочка является thenable: `await` запускает запрос и возвращает `Blob`. Для других
+форматов результата доступны терминальные методы `.arrayBuffer()`, `.bytes()`,
+`.stream()`, `.response()` и `.toFile(path)`.
+
+## Vue-пример
+
+Демо на Vue 3 + Vite находится в [`examples/vue`](examples/vue). Оно позволяет выбрать
+изображение, настроить операции и увидеть результат.
+
+Сначала запустите REST-сервер, затем:
+
 ```bash
 pnpm --filter @sharptown/example-vue dev
 ```
 
-## Docker
-Each server host has its own Dockerfile, built from the repo root context:
-```bash
-docker build -f packages/server-rest/Dockerfile -t sharptown-rest .
-docker run -p 3001:3001 -d sharptown-rest
-```
+## Fastify-плагин
 
-### docker-compose
-`docker-compose.yml` defines three services — `rest` (3001), `grpc` (50051), `jsonrpc` (3002):
-```bash
-cp .env.example .env   # optional; compose works without it
-docker compose up --build rest        # REST only
-docker compose up --build             # all three
-```
-
-## 🔁 API Response
-
-On success → binary image is returned
-On error → JSON
-
-```JSON
-{
-  "error": "Unsupported format"
-}
-```
-
-## 🔌 Fastify Plugin Usage
-The REST transform is shipped as a standalone Fastify plugin, [`@sharptown/fastify-plugin`](packages/fastify),
-on top of the framework-agnostic [`@sharptown/core`](packages/core) engine:
+REST-преобразование также доступно как отдельный Fastify-плагин:
+[`@sharptown/fastify-plugin`](packages/fastify).
 
 ```js
 import Fastify from 'fastify'
 import sharptown from '@sharptown/fastify-plugin'
 
 const app = Fastify()
+
 await app.register(sharptown, { prefix: '/api/v1' })
 await app.listen({ port: 3001 })
 ```
 
-Because all imaging lives in `@sharptown/core`, adapters for **Hono, Elysia, Express** and
-others are thin — see [the core adapter contract](packages/core#writing-a-new-adapter).
+Плагин регистрирует `POST /api/v1/transform` и использует общий движок
+[`@sharptown/core`](packages/core). Новые адаптеры для Hono, Elysia, Express и других
+фреймворков могут следовать тому же контракту:
+[`packages/core#writing-a-new-adapter`](packages/core#writing-a-new-adapter).
 
-## 🛰️ JSON-RPC over WebSocket
-[`@sharptown/server-jsonrpc`](packages/server-jsonrpc) exposes the transform as JSON-RPC 2.0
-over a WebSocket at `/rpc` (method `image.transform`, base64 payloads). Run with `pnpm jsonrpc`.
+## Docker
 
-## 🤝 Contributing
-1. Fork the repository
-2. Create a feature branch:
+У каждого серверного пакета есть собственный Dockerfile. Собирать нужно из корня
+репозитория:
+
 ```bash
-git checkout -b feature/amazing-feature
+docker build -f packages/server-rest/Dockerfile -t sharptown-rest .
+docker run -p 3001:3001 -d sharptown-rest
 ```
-3. Commit your changes:
+
+`docker-compose.yml` описывает три сервиса:
+
+| Сервис | Порт | Назначение |
+| ------ | ---- | ---------- |
+| `rest` | `3001` | REST API |
+| `grpc` | `50051` | gRPC API |
+| `jsonrpc` | `3002` | JSON-RPC через WebSocket |
+
 ```bash
-git commit -m "feat: add amazing feature"
+cp .env.example .env          # опционально
+docker compose up --build rest
+docker compose up --build
 ```
-4. Push to the branch:
+
+## Документация
+
+Документация находится в [`docs`](docs). Локальный запуск:
+
 ```bash
-git push origin feature/amazing-feature
+pnpm docs
 ```
-5. Create a pull request
 
+Полезные разделы:
 
-## 🧩 Roadmap
-- Astro + Starlight documentation website
-- OpenAPI / Swagger support
-- Extra filters: sharpen, contrast, saturation
-- Batch image processing
+- [`docs/src/content/docs/ru/getting-started.md`](docs/src/content/docs/ru/getting-started.md)
+- [`docs/src/content/docs/ru/rest-api.md`](docs/src/content/docs/ru/rest-api.md)
+- [`docs/src/content/docs/ru/grpc-api.md`](docs/src/content/docs/ru/grpc-api.md)
+- [`docs/src/content/docs/ru/jsonrpc-api.md`](docs/src/content/docs/ru/jsonrpc-api.md)
+- [`docs/src/content/docs/ru/js-client.md`](docs/src/content/docs/ru/js-client.md)
+- [`docs/src/content/docs/ru/deployment.md`](docs/src/content/docs/ru/deployment.md)
 
-If you'd like, I can also:
-- Publish a Fastify plugin to npm
-- Build Swagger docs automatically
-- Anything you'd like to adjust — just tell me!
+## Разработка
+
+```bash
+pnpm install
+pnpm build
+```
+
+Перед pull request желательно проверить сборку и затронутые пакеты.
+
+Типичный рабочий процесс:
+
+1. Создайте ветку.
+2. Внесите изменения.
+3. Запустите релевантные проверки.
+4. Откройте pull request.
+
+## Планы
+
+- Документационный сайт на Astro + Starlight.
+- OpenAPI / Swagger для REST API.
+- Дополнительные фильтры и операции обработки.
+- Batch-обработка изображений.
