@@ -1,0 +1,26 @@
+{
+  "name": "@sharptown/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/plugin.mjs",
+  "scripts": {
+    "dev:env": "node --watch --env-file=.env index.mjs",
+    "prod:env": "node --env-file=.env index.mjs",
+    "prod": "node index.mjs",
+    "grpc": "node grpc.mjs",
+    "grpc:dev": "node --watch --env-file=.env grpc.mjs",
+    "grpc:prod": "node --env-file=.env grpc.mjs"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@fastify/multipart": "^9.3.0",
+    "@fastify/static": "^8.3.0",
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.8.1",
+    "@mgcrea/fastify-request-logger": "^1.9.1",
+    "@mgcrea/pino-pretty-compact": "^1.4.2",
+    "fastify": "^5.0.0",
+    "sharp": "^0.33.5"
+  }
+}

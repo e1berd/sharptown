@@ -5,6 +5,21 @@ Resize, rotate, blur, grayscale, modify alpha, convert formats — all on-the-fl
 
 Perfect for web developers optimizing image delivery 🚀
 
+## 📦 Monorepo
+
+This is a [pnpm](https://pnpm.io) workspace:
+
+| Package | Path | Description |
+| ------- | ---- | ----------- |
+| `@sharptown/server` | [`packages/server`](packages/server) | Fastify + Sharp REST & gRPC service |
+| `@sharptown/client` | [`packages/client`](packages/client) | Expressive isomorphic JS client (browser / Node / Bun / Deno) |
+
+```bash
+pnpm install        # install all workspaces
+pnpm dev            # run the server in watch mode
+pnpm build:client   # emit client type declarations
+```
+
 
 ## ✨ Features
 - Convert any supported format to any other (WebP, PNG, JPEG, GIF, AVIF…)
@@ -51,7 +66,7 @@ curl -X POST \
 пайпится прямо в Sharp, а результат отдаётся обратно потоком чанков. Backpressure
 соблюдается в обе стороны.
 
-Контракт — в [`proto/sharptown.proto`](proto/sharptown.proto):
+Контракт — в [`packages/server/proto/sharptown.proto`](packages/server/proto/sharptown.proto):
 
 ```proto
 service ImageProcessor {
@@ -67,10 +82,10 @@ service ImageProcessor {
 ### Запуск
 
 ```bash
-npm install
-cp .env.example .env
-npm run grpc:dev        # dev (watch)
-# или: npm run grpc     # prod
+pnpm install
+cp packages/server/.env.example packages/server/.env
+pnpm grpc:dev        # dev (watch)
+# или: pnpm grpc     # prod
 ```
 
 Порт настраивается через `SHARPTOWN_GRPC_PORT` (по умолчанию `50051`) и
@@ -84,7 +99,7 @@ import * as grpc from '@grpc/grpc-js'
 import protoLoader from '@grpc/proto-loader'
 import { createReadStream, createWriteStream } from 'node:fs'
 
-const def = protoLoader.loadSync('proto/sharptown.proto', { keepCase: false, oneofs: true, defaults: true })
+const def = protoLoader.loadSync('packages/server/proto/sharptown.proto', { keepCase: false, oneofs: true, defaults: true })
 const { sharptown } = grpc.loadPackageDefinition(def)
 const client = new sharptown.v1.ImageProcessor('localhost:50051', grpc.credentials.createInsecure())
 
@@ -111,15 +126,34 @@ Local Development
 ```bash
 git clone https://github.com/eckeriaue/sharptown.git
 cd sharptown
-npm install
-cp .env.example .env
-npm run dev:env
+pnpm install
+cp packages/server/.env.example packages/server/.env
+pnpm dev
+```
+
+## 🧑‍💻 JS Client — `@sharptown/client`
+
+An expressive, isomorphic client (browser / Node / Bun / Deno). Full docs in
+[`packages/client`](packages/client).
+
+```js
+import { createClient } from '@sharptown/client'
+
+const st = createClient('http://localhost:3001')
+
+const webp = await st
+  .transform(file)
+  .resize(800, 600)
+  .blur(3)
+  .grayscale()
+  .convert('webp')
 ```
 
 ## Docker
+The Dockerfile builds from the repo root context:
 ```bash
-docker build -t sharptown .
-docker run -p 3000:3000 -d sharptown
+docker build -f packages/server/Dockerfile -t sharptown .
+docker run -p 3001:3001 -d sharptown
 ```
 
 ## 🔁 API Response
