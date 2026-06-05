@@ -1,6 +1,7 @@
 import { SharptownError } from './errors.mjs'
 import { rest } from './transports/rest.mjs'
 import { TransformBuilder } from './transform-builder.mjs'
+import { buildProxyUrl } from './proxy.mjs'
 
 /**
  * @typedef {object} ClientOptions
@@ -10,6 +11,11 @@ import { TransformBuilder } from './transform-builder.mjs'
  *   A custom `fetch` implementation (for Node < 18, proxies, tests). Defaults to `globalThis.fetch`.
  * @property {Record<string, string>} [headers]
  *   Default headers sent with every request (e.g. authorization).
+ * @property {string} [proxySecret]
+ *   Shared HMAC secret (`SHARPTOWN_PROXY_KEY`) enabling {@link SharptownClient#signedUrl}.
+ *   Sign on a trusted server only; never ship this secret to a browser bundle.
+ * @property {string} [proxyPath]
+ *   Proxy endpoint path used by {@link SharptownClient#signedUrl}. Defaults to `/api/v1/fetch`.
  */
 
 /**
@@ -26,10 +32,10 @@ import { TransformBuilder } from './transform-builder.mjs'
  * const webp = await st.transform(file).resize(800).convert('webp')
  */
 export class SharptownClient {
-  /** @type {{ baseUrl: URL, transport: any, fetchImpl: Function, headers: Record<string,string> }} */
+  /** @type {{ baseUrl: URL, transport: any, fetchImpl: Function, headers: Record<string,string>, proxySecret?: string, proxyPath?: string }} */
   #ctx
 
-  /** @param {{ baseUrl: URL, transport: any, fetchImpl: Function, headers: Record<string,string> }} ctx */
+  /** @param {{ baseUrl: URL, transport: any, fetchImpl: Function, headers: Record<string,string>, proxySecret?: string, proxyPath?: string }} ctx */
   constructor(ctx) {
     this.#ctx = ctx
   }
@@ -37,6 +43,33 @@ export class SharptownClient {
   /** The server base URL. @returns {URL} */
   get url() {
     return this.#ctx.baseUrl
+  }
+
+  /**
+   * Builds a signed image-proxy URL for the server's `GET /fetch` endpoint, suitable for an
+   * `<img src>`. The server downloads `source`, applies the operations, and serves a cached
+   * result. Requires `proxySecret` to have been passed to {@link sharptown}.
+   *
+   * @param {string} source Source image URL to transform.
+   * @param {import('./operations.mjs').Operations} [operations] Transform operations.
+   * @returns {Promise<string>}
+   * @throws {SharptownError} When no `proxySecret` is configured.
+   *
+   * @example
+   * const st = sharptown('https://img.example.com', { proxySecret: process.env.SHARPTOWN_PROXY_KEY })
+   * const src = await st.signedUrl('https://example.com/photo.jpg', { width: 800, convertTo: 'webp' })
+   */
+  signedUrl(source, operations = {}) {
+    if (!this.#ctx.proxySecret) {
+      throw new SharptownError('signedUrl requires a proxySecret: sharptown(url, { proxySecret })')
+    }
+    return buildProxyUrl({
+      baseUrl: this.#ctx.baseUrl,
+      source,
+      operations,
+      secret: this.#ctx.proxySecret,
+      path: this.#ctx.proxyPath,
+    })
   }
 
   /**
@@ -122,6 +155,8 @@ export function sharptown(url, options = {}) {
     transport: options.transport ?? rest(),
     fetchImpl,
     headers: options.headers ?? {},
+    proxySecret: options.proxySecret,
+    proxyPath: options.proxyPath,
   })
 }
 

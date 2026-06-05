@@ -145,6 +145,17 @@ state — so it behaves the same under classic PHP-FPM and under long-lived work
   `close()` on it, or just let the client go out of scope — the handle is closed on
   destruction.
 
+## Signed image proxy
+
+Build a signed URL for the server's `GET /fetch` endpoint, suitable for an `<img src>`: the
+server downloads, transforms, and caches the remote image. Pass the shared `proxySecret`
+(the server's `SHARPTOWN_PROXY_KEY`); sign on a trusted server only.
+
+```php
+$st = sharptown('https://img.example.com', proxySecret: getenv('SHARPTOWN_PROXY_KEY'));
+$src = $st->signedUrl('https://example.com/photo.jpg', ['width' => 800, 'convertTo' => 'webp']);
+```
+
 ## License
 
 MIT

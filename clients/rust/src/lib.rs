@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::fs::{self, File};
 use std::io::{Cursor, Read};
@@ -6,10 +6,12 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use base64::prelude::*;
+use hmac::{Hmac, Mac};
 use reqwest::blocking::{multipart, Client as HttpClient};
 use reqwest::header::{HeaderName, HeaderValue};
 use serde::Deserialize;
 use serde_json::{json, Value as JsonValue};
+use sha2::Sha256;
 use tungstenite::client::IntoClientRequest;
 use tungstenite::{connect, Message};
 use url::form_urlencoded::Serializer;
@@ -359,6 +361,8 @@ pub struct Client {
     http: HttpClient,
     headers: Vec<(String, String)>,
     transport: Transport,
+    proxy_secret: Option<String>,
+    proxy_path: String,
 }
 
 impl Client {
@@ -371,6 +375,8 @@ impl Client {
                 .expect("reqwest blocking client should build with default configuration"),
             headers: Vec::new(),
             transport: Transport::default(),
+            proxy_secret: None,
+            proxy_path: "/api/v1/fetch".to_string(),
         }
     }
 
@@ -424,6 +430,75 @@ impl Client {
             ops: Operations::new(),
             err: None,
         }
+    }
+
+    /// Sets the shared HMAC secret (the server's `SHARPTOWN_PROXY_KEY`) used by
+    /// [`Client::signed_url`]. Sign on a trusted server only; never embed the secret in a
+    /// public client.
+    pub fn with_proxy_secret(mut self, secret: impl Into<String>) -> Self {
+        self.proxy_secret = Some(secret.into());
+        self
+    }
+
+    /// Overrides the signed image-proxy endpoint path (default `/api/v1/fetch`).
+    pub fn with_proxy_path(mut self, path: impl Into<String>) -> Self {
+        self.proxy_path = path.into();
+        self
+    }
+
+    /// Builds a signed image-proxy URL for the server's `GET /fetch` endpoint, suitable for an
+    /// `<img>` tag. The server downloads `source`, applies `ops`, and serves a cached result.
+    /// The HMAC-SHA256 signature covers the source URL and every operation. Requires
+    /// [`Client::with_proxy_secret`].
+    ///
+    /// ```no_run
+    /// # use sharptown::{Client, Operations, OperationValue};
+    /// let client = Client::new("https://img.example.com").with_proxy_secret("secret");
+    /// let mut ops = Operations::new();
+    /// ops.insert("width".into(), OperationValue::Int(800));
+    /// let url = client.signed_url("https://example.com/photo.jpg", &ops).unwrap();
+    /// ```
+    pub fn signed_url(&self, source: impl Into<String>, ops: &Operations) -> Result<String> {
+        let source = source.into();
+        if source.is_empty() {
+            return Err(SharptownError::new("signed_url: source is required"));
+        }
+        let secret = self
+            .proxy_secret
+            .as_deref()
+            .ok_or_else(|| SharptownError::new("signed_url requires with_proxy_secret"))?;
+
+        let mut params: BTreeMap<String, String> = BTreeMap::new();
+        for key in OPERATION_ORDER {
+            if let Some(value) = ops.get(*key) {
+                params.insert((*key).to_string(), value.query_value());
+            }
+        }
+        params.insert("url".to_string(), source);
+
+        let canonical = params
+            .iter()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect::<Vec<_>>()
+            .join("&");
+
+        let mut mac =
+            Hmac::<Sha256>::new_from_slice(secret.as_bytes()).expect("HMAC accepts any key length");
+        mac.update(canonical.as_bytes());
+        let signature = BASE64_URL_SAFE_NO_PAD.encode(mac.finalize().into_bytes());
+
+        let mut serializer = Serializer::new(String::new());
+        for (key, value) in &params {
+            serializer.append_pair(key, value);
+        }
+        serializer.append_pair("sig", &signature);
+
+        Ok(format!(
+            "{}{}?{}",
+            http_base(&self.base_url),
+            self.proxy_path,
+            serializer.finish()
+        ))
     }
 }
 
@@ -1007,6 +1082,27 @@ mod tests {
             transform.err().map(|err| err.message.as_str()),
             Some("invalid width: expected a non-negative integer, got -1")
         );
+    }
+
+    #[test]
+    fn signed_url_matches_reference_vector() {
+        let client = Client::new("https://img.example.com").with_proxy_secret("shared-secret");
+        let mut ops = Operations::new();
+        ops.insert("width".into(), OperationValue::Int(800));
+        ops.insert("blur".into(), OperationValue::Int(3));
+        ops.insert("convertTo".into(), OperationValue::String("webp".into()));
+
+        let url = client
+            .signed_url("https://example.com/a.jpg?v=2&x=1", &ops)
+            .unwrap();
+        let sig = url::Url::parse(&url)
+            .unwrap()
+            .query_pairs()
+            .find(|(key, _)| key == "sig")
+            .map(|(_, value)| value.into_owned())
+            .unwrap();
+
+        assert_eq!(sig, "dxkY7R4OWb1R8p6QnS5C7w6QRn30mUgOFEteIGiuYiI");
     }
 
     #[test]

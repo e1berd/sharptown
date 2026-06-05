@@ -126,6 +126,18 @@ Sharptown.client(
 )
 ```
 
+## Signed image proxy
+
+Build a signed URL for the server's `GET /fetch` endpoint, suitable for an `<img src>`: the
+server downloads, transforms, and caches the remote image. Pass `:proxy_secret` (the
+server's `SHARPTOWN_PROXY_KEY`).
+
+```elixir
+"https://img.example.com"
+|> Sharptown.client(proxy_secret: System.fetch_env!("SHARPTOWN_PROXY_KEY"))
+|> Sharptown.signed_url("https://example.com/photo.jpg", %{"width" => 800, "convertTo" => "webp"})
+```
+
 ## License
 
 MIT

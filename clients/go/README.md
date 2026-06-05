@@ -124,6 +124,19 @@ The generated code in `internal/pb` is committed. To regenerate after a proto ch
 just generate   # needs protoc + protoc-gen-go + protoc-gen-go-grpc
 ```
 
+## Signed image proxy
+
+Build a signed URL for the server's `GET /fetch` endpoint, suitable for an `<img src>`: the
+server downloads, transforms, and caches the remote image. Configure the shared secret with
+`WithProxySecret` (the server's `SHARPTOWN_PROXY_KEY`).
+
+```go
+c := sharptown.New("https://img.example.com", sharptown.WithProxySecret(secret))
+src, err := c.SignedURL("https://example.com/photo.jpg", map[string]any{
+    "width": 800, "convertTo": "webp",
+})
+```
+
 ## License
 
 MIT

@@ -137,6 +137,17 @@ abstract final class Operations {
     return pairs.join('&');
   }
 
+  /// Returns the set operations as stringified `key => value` pairs, matching the values the
+  /// server receives as query parameters. Used to build the signed image-proxy URL.
+  static Map<String, String> toParams(Map<String, Object?> ops) {
+    final params = <String, String>{};
+    for (final key in order) {
+      final value = ops[key];
+      if (value != null) params[key] = _stringify(value);
+    }
+    return params;
+  }
+
   /// Returns the canonical operations as a JSON-RPC `options` object: only the keys that
   /// were set, in canonical order, keeping native value types.
   static Map<String, Object?> toOptions(Map<String, Object?> ops) {

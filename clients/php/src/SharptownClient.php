@@ -30,20 +30,28 @@ final class SharptownClient
     /** @var array<string, string> */
     private array $headers;
     private int $timeout;
+    private ?string $proxySecret;
+    private string $proxyPath;
 
     /**
      * @param array<string, string> $headers Default headers sent with every request.
+     * @param string|null $proxySecret Shared HMAC secret (`SHARPTOWN_PROXY_KEY`) for {@link signedUrl()}.
+     * @param string $proxyPath Signed image-proxy endpoint path.
      */
     public function __construct(
         string $url,
         ?Transport $transport = null,
         array $headers = [],
         int $timeout = 30,
+        ?string $proxySecret = null,
+        string $proxyPath = '/api/v1/fetch',
     ) {
         $this->baseUrl = self::normalizeBaseUrl($url);
         $this->transport = $transport ?? new RestTransport();
         $this->headers = $headers;
         $this->timeout = $timeout;
+        $this->proxySecret = $proxySecret;
+        $this->proxyPath = $proxyPath;
     }
 
     /**
@@ -54,14 +62,57 @@ final class SharptownClient
         ?Transport $transport = null,
         array $headers = [],
         int $timeout = 30,
+        ?string $proxySecret = null,
+        string $proxyPath = '/api/v1/fetch',
     ): self {
-        return new self($url, $transport, $headers, $timeout);
+        return new self($url, $transport, $headers, $timeout, $proxySecret, $proxyPath);
     }
 
     /** The server base URL. */
     public function url(): string
     {
         return $this->baseUrl;
+    }
+
+    /**
+     * Builds a signed image-proxy URL for the server's `GET /fetch` endpoint, suitable for an
+     * `<img src>`. The server downloads `$source`, applies the operations, and serves a cached
+     * result. The HMAC-SHA256 signature covers the source URL and every operation. Requires a
+     * `proxySecret`; sign on a trusted server only, never ship the secret to a public client.
+     *
+     * @param array<string, mixed> $operations Canonical operations (`width`, `blur`, …).
+     *
+     * @example
+     * $st = sharptown('https://img.example.com', proxySecret: getenv('SHARPTOWN_PROXY_KEY'));
+     * $src = $st->signedUrl('https://example.com/photo.jpg', ['width' => 800, 'convertTo' => 'webp']);
+     */
+    public function signedUrl(string $source, array $operations = []): string
+    {
+        if ($source === '') {
+            throw new SharptownError('signedUrl: source is required');
+        }
+        if ($this->proxySecret === null || $this->proxySecret === '') {
+            throw new SharptownError('signedUrl requires a proxySecret: sharptown(url, proxySecret: ...)');
+        }
+
+        $params = Operations::toParams($operations);
+        $params['url'] = $source;
+        ksort($params, SORT_STRING);
+
+        $canonical = [];
+        foreach ($params as $key => $value) {
+            $canonical[] = $key . '=' . $value;
+        }
+        $raw = hash_hmac('sha256', implode('&', $canonical), $this->proxySecret, true);
+        $signature = rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
+
+        $encoded = [];
+        foreach ($params as $key => $value) {
+            $encoded[] = rawurlencode($key) . '=' . rawurlencode($value);
+        }
+        $encoded[] = 'sig=' . $signature;
+
+        return rtrim(Url::http($this->baseUrl), '/') . $this->proxyPath . '?' . implode('&', $encoded);
     }
 
     /**

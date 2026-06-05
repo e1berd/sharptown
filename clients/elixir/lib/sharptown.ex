@@ -36,6 +36,8 @@ defmodule Sharptown do
     * `:transport` — `{module, opts}`, defaults to `rest/1`
     * `:headers` — default headers sent with every request
     * `:timeout` — request timeout in milliseconds (default `30_000`)
+    * `:proxy_secret` — shared HMAC secret (`SHARPTOWN_PROXY_KEY`) for `signed_url/3`
+    * `:proxy_path` — signed image-proxy endpoint path (default `/api/v1/fetch`)
   """
   @spec client(String.t(), keyword()) :: Client.t()
   def client(base_url, opts \\ []) when is_binary(base_url) do
@@ -43,8 +45,54 @@ defmodule Sharptown do
       base_url: normalize_base_url(base_url),
       transport: Keyword.get(opts, :transport, rest()),
       headers: Keyword.get(opts, :headers, []),
-      timeout: Keyword.get(opts, :timeout, 30_000)
+      timeout: Keyword.get(opts, :timeout, 30_000),
+      proxy_secret: Keyword.get(opts, :proxy_secret),
+      proxy_path: Keyword.get(opts, :proxy_path, "/api/v1/fetch")
     }
+  end
+
+  @doc """
+  Builds a signed image-proxy URL for the server's `GET /fetch` endpoint, suitable for an
+  `<img src>`. The server downloads `source`, applies the operations, and serves a cached
+  result. The HMAC-SHA256 signature covers the source URL and every operation. Requires a
+  `:proxy_secret` on the client; sign on a trusted server only, never ship the secret to a
+  public client.
+
+  `operations` is a canonical operation map, e.g. `%{"width" => 800, "convertTo" => "webp"}`.
+
+  ## Example
+
+      Sharptown.client("https://img.example.com", proxy_secret: System.fetch_env!("SHARPTOWN_PROXY_KEY"))
+      |> Sharptown.signed_url("https://example.com/photo.jpg", %{"width" => 800, "convertTo" => "webp"})
+  """
+  @spec signed_url(Client.t(), String.t(), map()) :: String.t()
+  def signed_url(%Client{} = client, source, operations \\ %{}) when is_binary(source) do
+    if source == "", do: raise(Error, message: "signed_url: source is required")
+
+    secret = client.proxy_secret
+
+    if secret in [nil, ""],
+      do: raise(Error, message: "signed_url requires :proxy_secret on the client")
+
+    params = operations |> Operations.to_params() |> Map.put("url", source)
+
+    canonical =
+      params
+      |> Enum.sort_by(fn {key, _value} -> key end)
+      |> Enum.map_join("&", fn {key, value} -> key <> "=" <> value end)
+
+    signature =
+      :crypto.mac(:hmac, :sha256, secret, canonical) |> Base.url_encode64(padding: false)
+
+    query =
+      params
+      |> Enum.map(fn {key, value} ->
+        URI.encode_www_form(key) <> "=" <> URI.encode_www_form(value)
+      end)
+      |> Kernel.++(["sig=" <> signature])
+      |> Enum.join("&")
+
+    Sharptown.URL.http_base(client.base_url) <> client.proxy_path <> "?" <> query
   end
 
   @doc "The REST transport (default)."

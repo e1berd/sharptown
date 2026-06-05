@@ -25,8 +25,10 @@ if (!function_exists('Sharptown\Client\sharptown')) {
         ?Transport $transport = null,
         array $headers = [],
         int $timeout = 30,
+        ?string $proxySecret = null,
+        string $proxyPath = '/api/v1/fetch',
     ): SharptownClient {
-        return new SharptownClient($url, $transport, $headers, $timeout);
+        return new SharptownClient($url, $transport, $headers, $timeout, $proxySecret, $proxyPath);
     }
 
     /**

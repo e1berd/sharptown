@@ -5,13 +5,15 @@ defmodule Sharptown.Client do
   """
 
   @enforce_keys [:base_url, :transport]
-  defstruct [:base_url, :transport, headers: [], timeout: 30_000]
+  defstruct [:base_url, :transport, :proxy_secret, headers: [], timeout: 30_000, proxy_path: "/api/v1/fetch"]
 
   @type transport :: {module(), keyword()}
   @type t :: %__MODULE__{
           base_url: String.t(),
           transport: transport(),
           headers: [{String.t(), String.t()}],
-          timeout: timeout()
+          timeout: timeout(),
+          proxy_secret: String.t() | nil,
+          proxy_path: String.t()
         }
 end

@@ -24,11 +24,13 @@ import (
 
 // Client is a configured Sharptown client. Create one with New.
 type Client struct {
-	baseURL    string
-	transport  Transport
-	headers    map[string]string
-	timeout    time.Duration
-	httpClient *http.Client
+	baseURL     string
+	transport   Transport
+	headers     map[string]string
+	timeout     time.Duration
+	httpClient  *http.Client
+	proxySecret string
+	proxyPath   string
 }
 
 // Option configures a Client.

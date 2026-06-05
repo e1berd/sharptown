@@ -1,13 +1,17 @@
 import fp from 'fastify-plugin'
+import { env } from 'node:process'
 import multipart from '@fastify/multipart'
 import { transformBuffer, InvalidOperationError } from '@sharptown/core'
 import { readFirstFile } from './extract-file.mjs'
+import { registerProxyRoute, resolveProxyConfig } from './proxy.mjs'
 
 /**
  * @typedef {object} SharptownFastifyOptions
  * @property {string} [prefix] Route prefix. Defaults to `/api/v1`.
  * @property {import('@fastify/multipart').FastifyMultipartBaseOptions} [multipart]
  *   Options forwarded to `@fastify/multipart` when this plugin registers it.
+ * @property {object} [proxy] Signed image-proxy options, merged over the `SHARPTOWN_PROXY_*`
+ *   environment variables. See {@link resolveProxyConfig}.
  */
 
 /**
@@ -28,6 +32,7 @@ import { readFirstFile } from './extract-file.mjs'
  * await app.register(sharptown, { prefix: '/api/v1' })
  * await app.listen({ port: 3001 })
  * // POST /api/v1/transform  (multipart file + ?width=500&convertTo=webp)
+ * // GET  /api/v1/fetch      (?url=...&width=500&convertTo=webp&sig=...)
  */
 async function sharptownFastify(app, options) {
   const prefix = options.prefix ?? '/api/v1'
@@ -35,6 +40,8 @@ async function sharptownFastify(app, options) {
   if (!app.hasContentTypeParser('multipart/form-data')) {
     app.register(multipart, options.multipart)
   }
+
+  registerProxyRoute(app, prefix, resolveProxyConfig(options.proxy, env))
 
   app.post(`${prefix}/transform`, async function transformRoute(request, reply) {
     const input = await readFirstFile(request)

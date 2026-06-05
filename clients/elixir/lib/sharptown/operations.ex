@@ -136,6 +136,22 @@ defmodule Sharptown.Operations do
   @spec to_options(map()) :: map()
   def to_options(ops), do: ops
 
+  @doc """
+  Returns the set operations as stringified `key => value` pairs, matching the values the
+  server receives as query parameters. Used to build the signed image-proxy URL.
+  """
+  @spec to_params(map()) :: %{optional(String.t()) => String.t()}
+  def to_params(ops) do
+    @order
+    |> Enum.flat_map(fn key ->
+      case Map.fetch(ops, key) do
+        {:ok, value} when value != nil -> [{key, stringify(value)}]
+        _ -> []
+      end
+    end)
+    |> Map.new()
+  end
+
   defp stringify(value) when is_boolean(value), do: if(value, do: "true", else: "false")
   defp stringify(value) when is_integer(value), do: Integer.to_string(value)
   defp stringify(value) when is_float(value), do: format_number(value)

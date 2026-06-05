@@ -14,5 +14,6 @@
 export { sharptown, SharptownClient } from './client.mjs'
 export { TransformBuilder } from './transform-builder.mjs'
 export { rest } from './transports/rest.mjs'
+export { buildProxyUrl } from './proxy.mjs'
 export { SharptownError } from './errors.mjs'
 export { SUPPORTED_FORMATS, FIT_MODES } from './operations.mjs'

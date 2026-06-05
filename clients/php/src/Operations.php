@@ -152,6 +152,25 @@ final class Operations
     }
 
     /**
+     * Returns the canonical operations as stringified `key => value` pairs (only keys that
+     * were set), matching the values the server receives as query parameters. Used to build
+     * the signed image-proxy URL.
+     *
+     * @param array<string, mixed> $ops
+     * @return array<string, string>
+     */
+    public static function toParams(array $ops): array
+    {
+        $params = [];
+        foreach (self::ORDER as $key) {
+            if (array_key_exists($key, $ops) && $ops[$key] !== null) {
+                $params[$key] = self::stringify($ops[$key]);
+            }
+        }
+        return $params;
+    }
+
+    /**
      * Returns the canonical operations as a JSON-RPC `options` object: only the keys that
      * were set, in canonical order, keeping native value types.
      *

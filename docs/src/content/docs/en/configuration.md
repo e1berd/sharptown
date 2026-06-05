@@ -24,6 +24,11 @@ cp .env.example .env
 | `SHARPTOWN_GRPC_HOST` | `0.0.0.0` | gRPC | gRPC server bind address. |
 | `SHARPTOWN_JSONRPC_PORT` | `3002` | JSON-RPC | WebSocket server port. |
 | `SHARPTOWN_JSONRPC_HOST` | `localhost` | JSON-RPC | WebSocket server bind address. |
+| `SHARPTOWN_PROXY_KEY` | _(empty)_ | REST | HMAC secret for the [signed image proxy](/docs/image-proxy). Empty disables the proxy. |
+| `SHARPTOWN_PROXY_ALLOWED_HOSTS` | `*` | REST | Comma-separated source-host allowlist; `*` allows any public host. Private/loopback addresses are always blocked. |
+| `SHARPTOWN_PROXY_TIMEOUT_MS` | `5000` | REST | Upstream fetch timeout in milliseconds. |
+| `SHARPTOWN_PROXY_MAX_BYTES` | `20971520` | REST | Maximum upstream image size in bytes. |
+| `SHARPTOWN_PROXY_CACHE_CONTROL` | `public, max-age=31536000, immutable` | REST | `Cache-Control` for proxy responses; empty omits the header. |
 
 Example `.env`:
 
@@ -34,6 +39,8 @@ SHARPTOWN_GRPC_PORT=50051
 SHARPTOWN_GRPC_HOST=0.0.0.0
 SHARPTOWN_JSONRPC_PORT=3002
 SHARPTOWN_JSONRPC_HOST=localhost
+SHARPTOWN_PROXY_KEY=
+SHARPTOWN_PROXY_ALLOWED_HOSTS=*
 ```
 
 ## Notes

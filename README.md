@@ -3,7 +3,7 @@
 Sharptown is an image transformation service and package set built on
 [Sharp](https://sharp.pixelplumbing.com). It provides resize, crop, rotation, filtering,
 alpha-channel operations, and format conversion through REST, gRPC, JSON-RPC, and clients
-for JavaScript, PHP, Go, Elixir, Dart/Flutter, Rust and Zig.
+for JavaScript, PHP, Go, Elixir, Dart/Flutter and Rust.
 
 The project is a pnpm monorepo. Shared image-processing logic lives in
 `@sharptown/core`; server packages and clients use that package as the common engine.
@@ -23,7 +23,7 @@ The project is a pnpm monorepo. Shared image-processing logic lives in
 ## Clients
 
 The same chainable API is available in several languages. **Only the JavaScript client is
-published to a package registry (npm).** The PHP, Go, Elixir, Dart/Flutter, Rust and Zig
+published to a package registry (npm).** The PHP, Go, Elixir, Dart/Flutter and Rust
 clients live under [`clients/`](clients) and are installed straight from this repository.
 
 | Client | Path | Transports | Install |
@@ -34,9 +34,8 @@ clients live under [`clients/`](clients) and are installed straight from this re
 | Elixir | [`clients/elixir`](clients/elixir) | REST, JSON-RPC | Mix git dependency, `sparse: "clients/elixir"` (not on Hex) |
 | Dart/Flutter | [`clients/flutter`](clients/flutter) | REST, JSON-RPC | Pub git dependency, `path: clients/flutter` (not on pub.dev) |
 | Rust | [`clients/rust`](clients/rust) | REST, JSON-RPC | Cargo path dependency (not on crates.io) |
-| Zig | [`clients/zig`](clients/zig) | REST, JSON-RPC | Zig package/path dependency (not on a registry) |
 
-gRPC support for the PHP, Elixir, Dart/Flutter, Rust and Zig clients is in progress.
+gRPC support for the PHP, Elixir, Dart/Flutter and Rust clients is in progress.
 REST is the recommended client transport for very large input files today because it can
 stream multipart uploads. The current JSON-RPC server contract sends `params.image` as one
 base64 string, so JSON-RPC clients must buffer the source image and are not suitable for
@@ -55,7 +54,9 @@ multi-gigabyte uploads.
 - Output controls: `convertTo`, `quality`, `progressive`, `stripMetadata`.
 - Alpha-channel controls: `removeAlpha`, `ensureAlpha`.
 - Shared operation model across REST, gRPC, JSON-RPC, and the JavaScript, PHP, Go, Elixir,
-  Dart/Flutter, Rust and Zig clients.
+  Dart/Flutter and Rust clients.
+- Signed image proxy: transform a remote image on the fly straight from its URL
+  (`GET /api/v1/fetch`), with HMAC-signed URLs, SSRF protection, and long-lived cache headers.
 - Local and Docker Compose deployment options.
 
 ## Quick Start
@@ -127,6 +128,36 @@ Detailed REST and operation documentation:
 
 - [`docs/src/content/docs/en/rest-api.md`](docs/src/content/docs/en/rest-api.md)
 - [`docs/src/content/docs/en/operations.md`](docs/src/content/docs/en/operations.md)
+
+## Signed Image Proxy
+
+The REST server can also transform a **remote** image referenced by URL, so a transformed
+image can be embedded directly in an `<img src>`:
+
+```http
+GET /api/v1/fetch?url=<source>&width=800&convertTo=webp&sig=<signature>
+```
+
+The server downloads `url`, applies the same operations as `POST /transform`, and returns
+the result with long-lived `Cache-Control` and an `ETag` — so the heavy work runs once per
+unique URL and a CDN serves the rest.
+
+Every request must carry an HMAC-SHA256 `sig` over the source URL and all operations
+(`SHARPTOWN_PROXY_KEY`). The proxy blocks private/loopback/cloud-metadata addresses, refuses
+to follow redirects, and limits the upstream fetch by timeout and size. Configure it with
+the `SHARPTOWN_PROXY_*` variables (see [`.env.example`](.env.example)).
+
+Each client can build the signed URL for you, for example with the JavaScript client:
+
+```js
+import { sharptown } from '@sharptown/client'
+
+const st = sharptown('https://img.example.com', { proxySecret: process.env.SHARPTOWN_PROXY_KEY })
+const src = await st.signedUrl('https://example.com/photo.jpg', { width: 800, convertTo: 'webp' })
+```
+
+The equivalent helper in the other clients: `SignedURL` (Go), `signedUrl` (PHP, Dart),
+`signed_url` (Elixir, Rust).
 
 ## gRPC API
 

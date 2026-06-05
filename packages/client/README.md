@@ -102,6 +102,18 @@ try {
 }
 ```
 
+## Signed image proxy
+
+Build a signed URL for the server's `GET /fetch` endpoint and drop it straight into an
+`<img src>` — the server downloads, transforms, and caches the remote image. Pass the shared
+`proxySecret` (the server's `SHARPTOWN_PROXY_KEY`); sign on a trusted server only, never ship
+the secret to a browser bundle.
+
+```js
+const st = sharptown('https://img.example.com', { proxySecret: process.env.SHARPTOWN_PROXY_KEY })
+const src = await st.signedUrl('https://example.com/photo.jpg', { width: 800, convertTo: 'webp' })
+```
+
 ## License
 
 MIT
