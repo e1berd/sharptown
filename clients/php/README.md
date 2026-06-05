@@ -40,7 +40,9 @@ Requires PHP >= 8.1.
 
 ## Choosing a transport
 
-The base URL must match the transport you pick.
+The base URL must match the transport you pick. The scheme is optional — a bare host like
+`localhost:3001` defaults to the secure variant (`https://`, or `wss://` for JSON-RPC); pass
+`http://` (or `ws://`) explicitly for a plain connection.
 
 ```php
 use function Sharptown\Client\{sharptown, rest, jsonrpc};

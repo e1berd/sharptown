@@ -43,7 +43,9 @@ Options:
 | `:headers` | `[]` | Default headers (e.g. `[{"authorization", "Bearer …"}]`). |
 | `:timeout` | `30_000` | Request timeout, in milliseconds. |
 
-The base URL must match the chosen transport.
+The base URL must match the chosen transport. The scheme is optional — a bare host like
+`localhost:3001` defaults to the secure variant (`https://`, or `wss://` for JSON-RPC); pass
+`http://` (or `ws://`) explicitly for a plain connection.
 
 ## Choosing a transport
 

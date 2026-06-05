@@ -30,6 +30,9 @@ const st = sharptown('http://localhost:3001')
 | `fetch` | `function` | `globalThis.fetch` | Custom fetch (Node < 18, proxies, tests). |
 | `headers` | `object` | `{}` | Default headers on every request (e.g. auth). |
 
+The scheme is optional — a bare host like `localhost:3001` defaults to the secure `https://`;
+pass `http://` explicitly for a plain connection (such as a local dev server).
+
 ## The transform chain
 
 `st.transform(input)` returns a chainable **`TransformBuilder`**. Every operation method

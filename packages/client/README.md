@@ -84,6 +84,9 @@ sharptown('http://localhost:3001', {
 })
 ```
 
+The scheme is optional — a bare host like `localhost:3001` defaults to the secure `https://`;
+pass `http://` explicitly for a plain connection (such as a local dev server).
+
 ## Errors
 
 Failed requests and invalid operations throw a `SharptownError` with `.status`

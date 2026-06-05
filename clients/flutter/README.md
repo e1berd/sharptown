@@ -49,7 +49,9 @@ final st = SharptownClient(
 ```
 
 Parameters: `transport`, `headers`, `timeout`, `httpClient`. The base URL must match the
-chosen transport. Call `st.close()` when you're done, unless you passed your own
+chosen transport. The scheme is optional — a bare host like `localhost:3001` defaults to the
+secure variant (`https://`, or `wss://` for JSON-RPC); pass `http://` (or `ws://`) explicitly
+for a plain connection. Call `st.close()` when you're done, unless you passed your own
 `httpClient` (then you own its lifecycle).
 
 ## Choosing a transport

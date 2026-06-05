@@ -38,7 +38,9 @@ c := sharptown.New("http://localhost:3001",
 ```
 
 Options: `WithTransport`, `WithHeaders`, `WithHeader`, `WithTimeout`, `WithHTTPClient`. The
-base URL must match the chosen transport.
+base URL must match the chosen transport. The scheme is optional — a bare host like
+`localhost:3001` defaults to the secure variant (`https://`, or `wss://` for JSON-RPC); pass
+`http://` (or `ws://`) explicitly for a plain connection.
 
 ## Choosing a transport
 
