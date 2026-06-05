@@ -20,7 +20,7 @@ use Sharptown\Client\Transport\Transport;
  * @example
  * use function Sharptown\Client\sharptown;
  *
- * $st = sharptown('localhost:3001');
+ * $st = sharptown('http://localhost:3001');
  * $webp = $st->transform('photo.jpg')->resize(800)->convert('webp')->bytes();
  */
 final class SharptownClient

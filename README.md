@@ -3,7 +3,7 @@
 Sharptown is an image transformation service and package set built on
 [Sharp](https://sharp.pixelplumbing.com). It provides resize, crop, rotation, filtering,
 alpha-channel operations, and format conversion through REST, gRPC, JSON-RPC, and clients
-for JavaScript, PHP, Go, Elixir and Dart/Flutter.
+for JavaScript, PHP, Go, Elixir, Dart/Flutter, Rust and Zig.
 
 The project is a pnpm monorepo. Shared image-processing logic lives in
 `@sharptown/core`; server packages and clients use that package as the common engine.
@@ -23,8 +23,8 @@ The project is a pnpm monorepo. Shared image-processing logic lives in
 ## Clients
 
 The same chainable API is available in several languages. **Only the JavaScript client is
-published to a package registry (npm).** The PHP, Go, Elixir and Dart/Flutter clients live
-under [`clients/`](clients) and are installed straight from this repository.
+published to a package registry (npm).** The PHP, Go, Elixir, Dart/Flutter, Rust and Zig
+clients live under [`clients/`](clients) and are installed straight from this repository.
 
 | Client | Path | Transports | Install |
 | ------ | ---- | ---------- | ------- |
@@ -33,8 +33,14 @@ under [`clients/`](clients) and are installed straight from this repository.
 | Go | [`clients/go`](clients/go) | REST, JSON-RPC, gRPC | `go get github.com/e1berd/sharptown/clients/go` |
 | Elixir | [`clients/elixir`](clients/elixir) | REST, JSON-RPC | Mix git dependency, `sparse: "clients/elixir"` (not on Hex) |
 | Dart/Flutter | [`clients/flutter`](clients/flutter) | REST, JSON-RPC | Pub git dependency, `path: clients/flutter` (not on pub.dev) |
+| Rust | [`clients/rust`](clients/rust) | REST, JSON-RPC | Cargo path dependency (not on crates.io) |
+| Zig | [`clients/zig`](clients/zig) | REST, JSON-RPC | Zig package/path dependency (not on a registry) |
 
-gRPC support for the PHP, Elixir and Dart/Flutter clients is in progress.
+gRPC support for the PHP, Elixir, Dart/Flutter, Rust and Zig clients is in progress.
+REST is the recommended client transport for very large input files today because it can
+stream multipart uploads. The current JSON-RPC server contract sends `params.image` as one
+base64 string, so JSON-RPC clients must buffer the source image and are not suitable for
+multi-gigabyte uploads.
 
 ## Features
 
@@ -48,8 +54,8 @@ gRPC support for the PHP, Elixir and Dart/Flutter clients is in progress.
 - Filters and effects: `blur`, `sharpen`, `sepia`, `invert`, `threshold`, `oilPaint`.
 - Output controls: `convertTo`, `quality`, `progressive`, `stripMetadata`.
 - Alpha-channel controls: `removeAlpha`, `ensureAlpha`.
-- Shared operation model across REST, gRPC, JSON-RPC, and the JavaScript, PHP, Go, Elixir
-  and Dart/Flutter clients.
+- Shared operation model across REST, gRPC, JSON-RPC, and the JavaScript, PHP, Go, Elixir,
+  Dart/Flutter, Rust and Zig clients.
 - Local and Docker Compose deployment options.
 
 ## Quick Start

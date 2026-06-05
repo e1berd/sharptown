@@ -21,7 +21,7 @@ use Sharptown\Client\Url;
  * @example
  * use function Sharptown\Client\{sharptown, jsonrpc};
  *
- * $st = sharptown('localhost:3002', transport: jsonrpc());
+ * $st = sharptown('ws://localhost:3002', transport: jsonrpc());
  */
 final class JsonRpcTransport implements Transport
 {

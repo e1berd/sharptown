@@ -14,7 +14,7 @@ import 'transport/transport.dart';
 /// plain HTTP.
 ///
 /// ```dart
-/// final st = SharptownClient('localhost:3001');
+/// final st = SharptownClient('http://localhost:3001');
 /// final webp = await st.transform(ImageInput.path('photo.jpg')).resize(800).convert('webp').bytes();
 /// ```
 class SharptownClient {
