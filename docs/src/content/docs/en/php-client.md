@@ -14,9 +14,23 @@ classic PHP-FPM and under long-lived workers (FrankenPHP, RoadRunner).
 
 ## Install
 
-```bash
-composer require sharptown/client
+The PHP client is **not published to Packagist** — it lives in the repository under
+`clients/php`. Clone the repo and point Composer at it with a path repository:
+
+```json
+{
+    "repositories": [
+        { "type": "path", "url": "path/to/sharptown/clients/php" }
+    ],
+    "require": {
+        "sharptown/client": "*"
+    }
+}
 ```
+
+Then run `composer install`. It has no runtime dependencies beyond `ext-curl` and
+`ext-json`, so you can also just copy `clients/php/src` into your project and autoload the
+`Sharptown\Client` namespace (PSR-4).
 
 Requires PHP >= 8.1.
 

@@ -17,9 +17,12 @@ image transformation API. One pipe-friendly API across all three transports — 
 
 ## Install
 
+Not published to Hex — it lives in the repository under `clients/elixir`. Add it as a Mix
+git dependency pointing at that subdirectory:
+
 ```elixir
 def deps do
-  [{:sharptown, "~> 1.0"}]
+  [{:sharptown, github: "e1berd/sharptown", sparse: "clients/elixir"}]
 end
 ```
 

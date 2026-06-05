@@ -70,11 +70,13 @@ JSON-RPC `-32602`).
 Elysia, Express…) значит: прочитать вход, вызвать `transformBuffer`, отправить байты,
 сопоставить `InvalidOperationError` с ошибкой.
 
-## Клиент — `@sharptown/client`
+## Клиенты
 
-Изоморфный JS-клиент, работающий в браузере, Node, Bun и Deno. По умолчанию он говорит на
-REST-транспорте, но имеет **подключаемый интерфейс транспорта**, так что позже можно
-добавить другие. См. [JS-клиент](/ru/docs/js-client).
+Sharptown поставляет клиенты на **JavaScript, PHP, Go и Elixir** — у всех общий цепочечный
+API и единая модель операций, с **подключаемыми транспортами**. В npm опубликован только
+JS-клиент; клиенты на PHP, Go и Elixir лежат в репозитории в `clients/<язык>`. См.
+[JS](/ru/docs/js-client), [PHP](/ru/docs/php-client), [Go](/ru/docs/go-client) и
+[Elixir](/ru/docs/elixir-client).
 
 ## Решения, о которых стоит знать
 

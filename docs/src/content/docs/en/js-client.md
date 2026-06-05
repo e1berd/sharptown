@@ -11,6 +11,9 @@ order: 1
 browser, Node, Bun and Deno. It speaks the REST transport by default, with a pluggable
 transport interface so other transports can be added later.
 
+It is the only client published to npm. Prefer another language? See the
+[PHP](/docs/php-client), [Go](/docs/go-client) and [Elixir](/docs/elixir-client) clients.
+
 ## Create a client
 
 ```js

@@ -1,27 +1,21 @@
-# sharptown (Go client)
+---
+title: Go Client
+description: An expressive Go client with all three transports — REST, JSON-RPC and gRPC — streaming straight from any io.Reader.
+group: Guide
+order: 4
+---
 
-Expressive Go client for the [Sharptown](https://github.com/) image transformation API.
-One fluent API across all three transports — **REST** (default), **JSON-RPC**, and
-**gRPC** — chosen when you create the client.
+# Go Client
 
-Images stream straight from any `io.Reader` (an `*os.File`, a multipart upload, an
-in-memory buffer), so a photo can be transformed **entirely in memory, without ever
-touching disk**.
-
-```go
-c := sharptown.New("http://localhost:3001")
-
-data, err := c.Transform(sharptown.File(f)).
-    Resize(800, 600).
-    Blur(3).
-    Grayscale().
-    Convert("webp").
-    Bytes(ctx)
-```
+The Go client exposes one fluent API across **all three transports** — REST (default),
+JSON-RPC, and **gRPC** — selected when you create the client. Images stream straight from
+any `io.Reader` (an `*os.File`, a multipart upload, an in-memory buffer), so a photo can be
+transformed **entirely in memory, without ever touching disk**.
 
 ## Install
 
-Not published to a package registry — Go fetches it straight from GitHub:
+The Go client is **not published to a package registry** — it lives in the repository under
+`clients/go`. Go fetches it straight from GitHub:
 
 ```bash
 go get github.com/e1berd/sharptown/clients/go
@@ -30,6 +24,9 @@ go get github.com/e1berd/sharptown/clients/go
 ```go
 import sharptown "github.com/e1berd/sharptown/clients/go"
 ```
+
+It uses the standard library for REST plus `coder/websocket` (JSON-RPC) and `grpc-go`
+(gRPC); the gRPC stubs are committed, so no codegen is needed to build.
 
 ## Create a client
 
@@ -40,8 +37,8 @@ c := sharptown.New("http://localhost:3001",
 )
 ```
 
-Options: `WithTransport`, `WithHeaders`, `WithHeader`, `WithTimeout`, `WithHTTPClient`.
-The base URL must match the chosen transport.
+Options: `WithTransport`, `WithHeaders`, `WithHeader`, `WithTimeout`, `WithHTTPClient`. The
+base URL must match the chosen transport.
 
 ## Choosing a transport
 
@@ -56,8 +53,8 @@ sharptown.New("ws://localhost:3002", sharptown.WithTransport(sharptown.JSONRPC()
 sharptown.New("localhost:50051", sharptown.WithTransport(sharptown.GRPC()))
 ```
 
-Every transport accepts the same builder, validates operations identically, and returns
-the same `*Response`, so swapping one for another never changes your calling code.
+Every transport accepts the same builder and returns the same `*Response`, so swapping one
+for another never changes your calling code.
 
 ## Inputs — no disk required
 
@@ -69,7 +66,7 @@ sharptown.Path("photo.jpg")        // convenience: read from disk
 sharptown.URL("https://…/cat.jpg") // convenience: fetch over HTTP
 ```
 
-A typical Go HTTP handler, fully in memory:
+A typical HTTP handler, fully in memory:
 
 ```go
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -92,20 +89,18 @@ Filters & effects: `Blur`, `Sharpen`, `Sepia`, `Invert`, `Threshold`, `OilPaint`
 Alpha & output: `RemoveAlpha`, `EnsureAlpha`, `Convert`, `Quality`, `Progressive`,
 `StripMetadata`, `KeepMetadata`.
 
-Validation happens as you build; the first invalid value (out of range, unsupported
-format) is captured and returned by the terminal — or check `Err()` early.
+The first invalid value (out of range, unsupported format) is captured and returned by the
+terminal — or check `Err()` early.
 
 ## Terminals
 
 ```go
 res, err := t.Do(ctx)        // *Response (Status, Header, Body)
-data, err := t.Bytes(ctx)    // []byte
+data, err := t.Bytes(ctx)    // []byte, stays in memory
 err := t.Save(ctx, "out.webp")
 ```
 
 ## Errors
-
-Server and validation failures come back as `*sharptown.Error`:
 
 ```go
 var se *sharptown.Error
@@ -114,14 +109,7 @@ if errors.As(err, &se) {
 }
 ```
 
-## Regenerating the gRPC stubs
+## Transports
 
-The generated code in `internal/pb` is committed. To regenerate after a proto change:
-
-```bash
-just generate   # needs protoc + protoc-gen-go + protoc-gen-go-grpc
-```
-
-## License
-
-MIT
+The same client speaks every Sharptown transport. See [REST API](/docs/rest-api),
+[JSON-RPC API](/docs/jsonrpc-api) and [gRPC API](/docs/grpc-api).

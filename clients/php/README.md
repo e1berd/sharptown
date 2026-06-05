@@ -19,11 +19,24 @@ $webp = $st->transform('photo.jpg')
 
 ## Install
 
-```bash
-composer require sharptown/client
+Not published to Packagist — it lives in the repository under `clients/php`. Clone the repo
+and add a Composer path repository:
+
+```json
+{
+    "repositories": [
+        { "type": "path", "url": "path/to/sharptown/clients/php" }
+    ],
+    "require": {
+        "sharptown/client": "*"
+    }
+}
 ```
 
-Requires PHP >= 8.1 with `ext-curl` and `ext-json` (both standard).
+It has no runtime dependencies beyond `ext-curl` and `ext-json`, so you can also just copy
+`src/` into your project and autoload the `Sharptown\Client` namespace (PSR-4).
+
+Requires PHP >= 8.1.
 
 ## Choosing a transport
 

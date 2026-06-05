@@ -66,11 +66,13 @@ Each adapter is small precisely because the core does the real work. Adding a ne
 (Hono, Elysia, Express…) means: read the input, call `transformBuffer`, send the bytes,
 map `InvalidOperationError` to an error.
 
-## The client — `@sharptown/client`
+## The clients
 
-An isomorphic JS client that runs in the browser, Node, Bun and Deno. It speaks the REST
-transport by default, with a **pluggable transport** interface so other transports can be
-added later. See [JS client](/docs/js-client).
+Sharptown ships clients in **JavaScript, PHP, Go and Elixir**, all sharing the same
+chainable API and canonical operation set, with a **pluggable transport** design. Only the
+JS client is published to npm; the PHP, Go and Elixir clients live under `clients/<language>`
+in the repository. See [JS](/docs/js-client), [PHP](/docs/php-client), [Go](/docs/go-client)
+and [Elixir](/docs/elixir-client).
 
 ## Design choices worth knowing
 

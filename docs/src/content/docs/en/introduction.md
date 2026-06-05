@@ -31,9 +31,9 @@ In other words, the core purpose is **image delivery optimization**:
 
 Optimized delivery is the foundation — but it is not the ceiling.
 
-Because Sharptown ships a **running server** plus an expressive **JavaScript client**
-(`@sharptown/client`, currently JS-only), you have everything you need to build a
-**complete in-browser photo editor** on top of it:
+Because Sharptown ships a **running server** plus expressive **clients in JavaScript, PHP,
+Go and Elixir**, you have everything you need to build a **complete in-browser photo
+editor** (or a server-side image pipeline) on top of it:
 
 - The browser sends the user's image and a chain of operations to a running Sharptown
   server.
@@ -63,9 +63,24 @@ See [Building a photo editor](/docs/building-an-editor) for a worked example.
 Three transports, **one shared engine**. Pick the one that fits your stack — or run all
 three side by side.
 
+## Clients
+
+The same chainable API is available in several languages. **Only the JavaScript client is
+published to a package registry (npm).** The PHP, Go and Elixir clients live in this
+repository under `clients/<language>` and are installed straight from GitHub.
+
+| Client | Language | Transports | Install |
+| ------ | -------- | ---------- | ------- |
+| [JS](/docs/js-client) | JavaScript — browser, Node, Bun, Deno | REST | `npm i @sharptown/client` (npm) |
+| [PHP](/docs/php-client) | PHP ≥ 8.1 | REST, JSON-RPC | Composer path repo from the repo (not on Packagist) |
+| [Go](/docs/go-client) | Go | REST, JSON-RPC, gRPC | `go get …/clients/go` (from GitHub) |
+| [Elixir](/docs/elixir-client) | Elixir (OTP 27+) | REST, JSON-RPC | Mix git dependency (not on Hex) |
+
+gRPC support for the PHP and Elixir clients is in progress.
+
 ## Where to go next
 
 - [Getting started](/docs/getting-started) — install and run a server in a minute.
 - [Architecture](/docs/architecture) — how the monorepo fits together.
-- [JS client](/docs/js-client) — the expressive, chainable browser/Node client.
+- [JS client](/docs/js-client) · [PHP client](/docs/php-client) · [Go client](/docs/go-client) · [Elixir client](/docs/elixir-client)
 - [Operations reference](/docs/operations) — every transform parameter in one table.

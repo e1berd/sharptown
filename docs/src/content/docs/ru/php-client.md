@@ -14,9 +14,23 @@ order: 3
 
 ## Установка
 
-```bash
-composer require sharptown/client
+PHP-клиент **не опубликован на Packagist** — он лежит в репозитории в `clients/php`.
+Склонируйте репозиторий и подключите его через Composer path-репозиторий:
+
+```json
+{
+    "repositories": [
+        { "type": "path", "url": "path/to/sharptown/clients/php" }
+    ],
+    "require": {
+        "sharptown/client": "*"
+    }
+}
 ```
+
+Затем `composer install`. У клиента нет рантайм-зависимостей кроме `ext-curl` и `ext-json`,
+поэтому можно просто скопировать `clients/php/src` в свой проект и подключить namespace
+`Sharptown\Client` (PSR-4).
 
 Требуется PHP >= 8.1.
 
