@@ -98,6 +98,9 @@ export class SharptownClient {
  * const st = sharptown('http://localhost:3001')
  * const webp = await st.transform(file).resize(800).convert('webp')
  *
+ * The scheme is optional: a bare `localhost:3001` resolves to `https://localhost:3001`.
+ * Without a scheme the secure variant is used; pass `http://` explicitly to opt out.
+ *
  * @param {string | URL} url The Sharptown server base URL (a string or a `URL`).
  * @param {ClientOptions} [options]
  * @returns {SharptownClient}
@@ -123,6 +126,11 @@ export function sharptown(url, options = {}) {
 }
 
 /**
+ * Resolves a user-supplied URL to an `http(s)` base. A missing scheme defaults to the
+ * secure variant (`https`), so `localhost:3001` becomes `https://localhost:3001`; an
+ * explicit `http://`/`ws://` selects the insecure variant. The transport owns the protocol
+ * family — here it is always `http`/`https`.
+ *
  * @param {string | URL} url
  * @returns {URL}
  */
@@ -130,12 +138,18 @@ function toBaseUrl(url) {
   if (url instanceof URL) {
     return new URL(url.href)
   }
-  if (typeof url === 'string' && url.length > 0) {
-    try {
-      return new URL(url)
-    } catch {
-      throw new SharptownError(`sharptown(url): invalid URL ${JSON.stringify(url)}`)
-    }
+  if (typeof url !== 'string' || url.trim().length === 0) {
+    throw new SharptownError('sharptown(url): url must be a non-empty string or a URL instance')
   }
-  throw new SharptownError('sharptown(url): url must be a non-empty string or a URL instance')
+
+  const trimmed = url.trim()
+  const scheme = trimmed.match(/^([a-z][a-z0-9+.-]*):\/\//i)
+  const secure = scheme ? !/^(http|ws)$/i.test(scheme[1]) : true
+  const authority = scheme ? trimmed.slice(scheme[0].length) : trimmed
+
+  try {
+    return new URL(`${secure ? 'https' : 'http'}://${authority}`)
+  } catch {
+    throw new SharptownError(`sharptown(url): invalid URL ${JSON.stringify(url)}`)
+  }
 }

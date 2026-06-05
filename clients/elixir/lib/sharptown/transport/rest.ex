@@ -55,8 +55,8 @@ defmodule Sharptown.Transport.REST do
     {body, "multipart/form-data; boundary=#{boundary}"}
   end
 
-  defp endpoint(base_url, path, ""), do: String.trim_trailing(base_url, "/") <> path
+  defp endpoint(base_url, path, ""), do: Sharptown.URL.http_base(base_url) <> path
 
   defp endpoint(base_url, path, query),
-    do: String.trim_trailing(base_url, "/") <> path <> "?" <> query
+    do: Sharptown.URL.http_base(base_url) <> path <> "?" <> query
 end

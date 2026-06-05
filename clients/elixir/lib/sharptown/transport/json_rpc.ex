@@ -4,7 +4,8 @@ defmodule Sharptown.Transport.JSONRPC do
   The image travels base64-encoded; the result is decoded back to raw bytes, so the returned
   `Sharptown.Response` matches the REST transport's shape.
 
-  The base URL may use `ws`/`wss` or `http`/`https` (auto-upgraded).
+  The scheme is optional: a bare `localhost:3002` resolves to `wss://localhost:3002`. Without
+  a scheme the secure variant is used; pass `ws` (or `http`) explicitly to opt out.
   """
 
   @behaviour Sharptown.Transport
@@ -74,20 +75,9 @@ defmodule Sharptown.Transport.JSONRPC do
   defp error_code(_), do: nil
 
   defp ws_endpoint(base_url, path) do
-    base =
-      base_url
-      |> String.trim()
-      |> String.trim_trailing("/")
-      |> upgrade_scheme()
-
+    base = Sharptown.URL.ws_base(base_url)
     if has_path?(base), do: base, else: base <> path
   end
-
-  defp upgrade_scheme("http://" <> rest), do: "ws://" <> rest
-  defp upgrade_scheme("https://" <> rest), do: "wss://" <> rest
-  defp upgrade_scheme("ws://" <> _ = url), do: url
-  defp upgrade_scheme("wss://" <> _ = url), do: url
-  defp upgrade_scheme(url), do: "ws://" <> url
 
   defp has_path?(url) do
     case URI.parse(url).path do

@@ -34,9 +34,10 @@ type Client struct {
 // Option configures a Client.
 type Option func(*Client)
 
-// New creates a client for baseURL. The base URL must match the chosen transport: the REST
-// host (http://…:3001), the JSON-RPC WebSocket host (ws://…:3002), or the gRPC host
-// (…:50051).
+// New creates a client for baseURL. The base URL points at the host for the chosen
+// transport: REST (…:3001), JSON-RPC WebSocket (…:3002), or gRPC (…:50051). The scheme is
+// optional and defaults to the secure variant — "localhost:3001" becomes
+// "https://localhost:3001"; pass "http://" explicitly for plain HTTP.
 func New(baseURL string, opts ...Option) *Client {
 	c := &Client{
 		baseURL:    strings.TrimRight(strings.TrimSpace(baseURL), "/"),

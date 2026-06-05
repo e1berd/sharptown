@@ -8,11 +8,13 @@ import 'transport/transport.dart';
 
 /// The Sharptown client. Create one with [SharptownClient.new].
 ///
-/// The base URL must match the chosen transport: the REST host (`http://…:3001`) or the
-/// JSON-RPC WebSocket host (`ws://…:3002`).
+/// The base URL points at the host for the chosen transport: the REST host (`…:3001`) or the
+/// JSON-RPC WebSocket host (`…:3002`). The scheme is optional and defaults to the secure
+/// variant — `localhost:3001` becomes `https://localhost:3001`; pass `http://` explicitly for
+/// plain HTTP.
 ///
 /// ```dart
-/// final st = SharptownClient('http://localhost:3001');
+/// final st = SharptownClient('localhost:3001');
 /// final webp = await st.transform(ImageInput.path('photo.jpg')).resize(800).convert('webp').bytes();
 /// ```
 class SharptownClient {

@@ -17,8 +17,8 @@ if (!function_exists('Sharptown\Client\sharptown')) {
      * @example
      * use function Sharptown\Client\{sharptown, jsonrpc};
      *
-     * $st = sharptown('http://localhost:3001');
-     * $rpc = sharptown('ws://localhost:3002', transport: jsonrpc());
+     * $st = sharptown('localhost:3001');
+     * $rpc = sharptown('localhost:3002', transport: jsonrpc());
      */
     function sharptown(
         string $url,

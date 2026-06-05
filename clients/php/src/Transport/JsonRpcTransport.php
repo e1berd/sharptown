@@ -8,18 +8,20 @@ use Sharptown\Client\Http\Response;
 use Sharptown\Client\Net\WebSocketClient;
 use Sharptown\Client\Operations;
 use Sharptown\Client\SharptownError;
+use Sharptown\Client\Url;
 
 /**
  * The JSON-RPC transport — calls `image.transform` over a WebSocket at `{baseUrl}/rpc`.
  * The image travels base64-encoded in the request and the result is base64-decoded back
  * to raw bytes, so the returned {@link Response} matches the REST transport's shape.
  *
- * The base URL may use `ws://`/`wss://` or `http://`/`https://` (auto-upgraded).
+ * The scheme is optional: a bare `localhost:3002` resolves to `wss://localhost:3002`. Without
+ * a scheme the secure variant is used; pass `ws://` (or `http://`) explicitly to opt out.
  *
  * @example
  * use function Sharptown\Client\{sharptown, jsonrpc};
  *
- * $st = sharptown('ws://localhost:3002', ['transport' => jsonrpc()]);
+ * $st = sharptown('localhost:3002', transport: jsonrpc());
  */
 final class JsonRpcTransport implements Transport
 {
@@ -84,13 +86,7 @@ final class JsonRpcTransport implements Transport
 
     private function endpoint(string $baseUrl): string
     {
-        $base = rtrim(trim($baseUrl), '/');
-        $base = preg_replace('#^http://#i', 'ws://', $base);
-        $base = preg_replace('#^https://#i', 'wss://', $base);
-        if (preg_match('#^wss?://#i', $base) !== 1) {
-            $base = 'ws://' . $base;
-        }
-
+        $base = Url::ws($baseUrl);
         $path = parse_url($base, PHP_URL_PATH);
         $hasPath = is_string($path) && $path !== '' && $path !== '/';
         return $hasPath ? $base : $base . $this->path;

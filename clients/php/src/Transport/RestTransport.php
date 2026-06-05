@@ -10,6 +10,7 @@ use Sharptown\Client\Http\Request;
 use Sharptown\Client\Http\Response;
 use Sharptown\Client\Operations;
 use Sharptown\Client\SharptownError;
+use Sharptown\Client\Url;
 
 /**
  * The REST transport — a `multipart/form-data` POST to `{baseUrl}/api/v1/transform` with
@@ -83,7 +84,7 @@ final class RestTransport implements Transport
 
     private function endpoint(string $baseUrl, string $query): string
     {
-        $url = rtrim($baseUrl, '/') . $this->path;
+        $url = Url::http($baseUrl) . $this->path;
         return $query !== '' ? $url . '?' . $query : $url;
     }
 }

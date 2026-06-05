@@ -7,6 +7,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../error.dart';
 import '../operations.dart';
 import '../response.dart';
+import '../url.dart';
 import 'transport.dart';
 
 /// The JSON-RPC over WebSocket transport. It calls `image.transform` at `{baseURL}/rpc`,
@@ -97,20 +98,7 @@ class JsonRpcTransport implements Transport {
   }
 
   static Uri _wsEndpoint(String base, String path) {
-    var normalized = base.trim();
-    if (normalized.endsWith('/')) {
-      normalized = normalized.substring(0, normalized.length - 1);
-    }
-    if (normalized.startsWith('http://')) {
-      normalized = 'ws://${normalized.substring(7)}';
-    } else if (normalized.startsWith('https://')) {
-      normalized = 'wss://${normalized.substring(8)}';
-    } else if (!normalized.startsWith('ws://') &&
-        !normalized.startsWith('wss://')) {
-      normalized = 'ws://$normalized';
-    }
-
-    final uri = Uri.parse(normalized);
+    final uri = Uri.parse(wsBase(base));
     if (uri.path.isEmpty || uri.path == '/') {
       return uri.replace(path: path);
     }

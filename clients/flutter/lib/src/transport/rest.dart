@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../error.dart';
 import '../operations.dart';
 import '../response.dart';
+import '../url.dart';
 import 'transport.dart';
 
 /// The default transport: a multipart `POST` to `{baseURL}/api/v1/transform`, with the
@@ -24,7 +25,8 @@ class RestTransport implements Transport {
     final resolved = await request.input.resolve(request.httpClient);
 
     final query = Operations.toQuery(request.operations);
-    final endpoint = '${request.baseUrl}$path${query.isEmpty ? '' : '?$query'}';
+    final endpoint =
+        '${httpBase(request.baseUrl)}$path${query.isEmpty ? '' : '?$query'}';
 
     final multipart = http.MultipartRequest('POST', Uri.parse(endpoint))
       ..headers.addAll(request.headers)

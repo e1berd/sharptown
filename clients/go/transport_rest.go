@@ -7,7 +7,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"strings"
 )
 
 type restTransport struct {
@@ -16,7 +15,7 @@ type restTransport struct {
 }
 
 func (t *restTransport) Transform(ctx context.Context, req *Request) (*Response, error) {
-	endpoint := strings.TrimRight(req.BaseURL, "/") + t.path
+	endpoint := httpBase(req.BaseURL) + t.path
 	if query := queryString(req.Operations); query != "" {
 		endpoint += "?" + query
 	}

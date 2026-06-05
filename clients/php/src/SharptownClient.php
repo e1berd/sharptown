@@ -12,13 +12,15 @@ use Sharptown\Client\Transport\Transport;
 /**
  * The Sharptown client. Create one via {@link sharptown()}.
  *
- * The base URL must match the chosen transport: the REST host (`http://…:3001`), the
- * JSON-RPC WebSocket host (`ws://…:3002`), or the gRPC host (`http://…:50051`).
+ * The base URL points at the host for the chosen transport: REST (`…:3001`), JSON-RPC
+ * WebSocket (`…:3002`), or gRPC (`…:50051`). The scheme is optional and defaults to the
+ * secure variant — `localhost:3001` becomes `https://localhost:3001`; pass `http://`
+ * explicitly for plain HTTP.
  *
  * @example
  * use function Sharptown\Client\sharptown;
  *
- * $st = sharptown('http://localhost:3001');
+ * $st = sharptown('localhost:3001');
  * $webp = $st->transform('photo.jpg')->resize(800)->convert('webp')->bytes();
  */
 final class SharptownClient

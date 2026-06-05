@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/coder/websocket"
 )
@@ -101,16 +100,7 @@ func decodeRPC(message []byte) (*Response, error) {
 }
 
 func wsEndpoint(base, path string) string {
-	b := strings.TrimRight(strings.TrimSpace(base), "/")
-	switch {
-	case strings.HasPrefix(b, "http://"):
-		b = "ws://" + strings.TrimPrefix(b, "http://")
-	case strings.HasPrefix(b, "https://"):
-		b = "wss://" + strings.TrimPrefix(b, "https://")
-	case strings.HasPrefix(b, "ws://"), strings.HasPrefix(b, "wss://"):
-	default:
-		b = "ws://" + b
-	}
+	b := wsBase(base)
 	if parsed, err := url.Parse(b); err == nil && (parsed.Path == "" || parsed.Path == "/") {
 		return b + path
 	}
