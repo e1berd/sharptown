@@ -68,11 +68,11 @@ map `InvalidOperationError` to an error.
 
 ## The clients
 
-Sharptown ships clients in **JavaScript, PHP, Go and Elixir**, all sharing the same
-chainable API and canonical operation set, with a **pluggable transport** design. Only the
-JS client is published to npm; the PHP, Go and Elixir clients live under `clients/<language>`
-in the repository. See [JS](/docs/js-client), [PHP](/docs/php-client), [Go](/docs/go-client)
-and [Elixir](/docs/elixir-client).
+Sharptown ships clients in **JavaScript, PHP, Go, Elixir and Dart/Flutter**, all sharing the
+same chainable API and canonical operation set, with a **pluggable transport** design. Only
+the JS client is published to npm; the PHP, Go, Elixir and Dart/Flutter clients live under
+`clients/<language>` in the repository. See [JS](/docs/js-client), [PHP](/docs/php-client),
+[Go](/docs/go-client), [Elixir](/docs/elixir-client) and [Dart/Flutter](/docs/flutter-client).
 
 ## Design choices worth knowing
 

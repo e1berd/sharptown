@@ -32,7 +32,7 @@ order: 1
 Оптимизированная доставка — это фундамент, но не потолок.
 
 Поскольку Sharptown поставляется с **запущенным сервером** и выразительными
-**клиентами на JavaScript, PHP, Go и Elixir**, у вас есть всё необходимое, чтобы построить
+**клиентами на JavaScript, PHP, Go, Elixir и Dart/Flutter**, у вас есть всё необходимое, чтобы построить
 поверх него **полноценный фоторедактор прямо в браузере** (или серверный конвейер обработки
 изображений):
 
@@ -67,8 +67,8 @@ order: 1
 ## Клиенты
 
 Один и тот же цепочечный API доступен на нескольких языках. **В реестр пакетов (npm)
-опубликован только JavaScript-клиент.** Клиенты на PHP, Go и Elixir лежат в этом
-репозитории в `clients/<язык>` и устанавливаются прямо из GitHub.
+опубликован только JavaScript-клиент.** Клиенты на PHP, Go, Elixir и Dart/Flutter лежат в
+этом репозитории в `clients/<язык>` и устанавливаются прямо из GitHub.
 
 | Клиент | Язык | Транспорты | Установка |
 | ------ | ---- | ---------- | --------- |
@@ -76,12 +76,13 @@ order: 1
 | [PHP](/ru/docs/php-client) | PHP ≥ 8.1 | REST, JSON-RPC | Composer path-репозиторий из репо (не Packagist) |
 | [Go](/ru/docs/go-client) | Go | REST, JSON-RPC, gRPC | `go get …/clients/go` (из GitHub) |
 | [Elixir](/ru/docs/elixir-client) | Elixir (OTP 27+) | REST, JSON-RPC | Mix git-зависимость (не Hex) |
+| [Dart/Flutter](/ru/docs/flutter-client) | Dart ≥ 3 — Flutter, обычный Dart | REST, JSON-RPC | Pub git-зависимость (не pub.dev) |
 
-Поддержка gRPC в PHP- и Elixir-клиентах в работе.
+Поддержка gRPC в PHP-, Elixir- и Dart/Flutter-клиентах в работе.
 
 ## Куда дальше
 
 - [Быстрый старт](/ru/docs/getting-started) — установка и запуск сервера за минуту.
 - [Архитектура](/ru/docs/architecture) — как устроен монорепозиторий.
-- [JS-клиент](/ru/docs/js-client) · [PHP-клиент](/ru/docs/php-client) · [Go-клиент](/ru/docs/go-client) · [Elixir-клиент](/ru/docs/elixir-client)
+- [JS-клиент](/ru/docs/js-client) · [PHP-клиент](/ru/docs/php-client) · [Go-клиент](/ru/docs/go-client) · [Elixir-клиент](/ru/docs/elixir-client) · [Dart/Flutter-клиент](/ru/docs/flutter-client)
 - [Справочник операций](/ru/docs/operations) — все параметры трансформации в одной таблице.

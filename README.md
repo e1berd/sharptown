@@ -3,7 +3,7 @@
 Sharptown is an image transformation service and package set built on
 [Sharp](https://sharp.pixelplumbing.com). It provides resize, crop, rotation, filtering,
 alpha-channel operations, and format conversion through REST, gRPC, JSON-RPC, and clients
-for JavaScript, PHP, Go and Elixir.
+for JavaScript, PHP, Go, Elixir and Dart/Flutter.
 
 The project is a pnpm monorepo. Shared image-processing logic lives in
 `@sharptown/core`; server packages and clients use that package as the common engine.
@@ -23,8 +23,8 @@ The project is a pnpm monorepo. Shared image-processing logic lives in
 ## Clients
 
 The same chainable API is available in several languages. **Only the JavaScript client is
-published to a package registry (npm).** The PHP, Go and Elixir clients live under
-[`clients/`](clients) and are installed straight from this repository.
+published to a package registry (npm).** The PHP, Go, Elixir and Dart/Flutter clients live
+under [`clients/`](clients) and are installed straight from this repository.
 
 | Client | Path | Transports | Install |
 | ------ | ---- | ---------- | ------- |
@@ -32,8 +32,9 @@ published to a package registry (npm).** The PHP, Go and Elixir clients live und
 | PHP | [`clients/php`](clients/php) | REST, JSON-RPC | Composer path repository (not on Packagist) |
 | Go | [`clients/go`](clients/go) | REST, JSON-RPC, gRPC | `go get github.com/e1berd/sharptown/clients/go` |
 | Elixir | [`clients/elixir`](clients/elixir) | REST, JSON-RPC | Mix git dependency, `sparse: "clients/elixir"` (not on Hex) |
+| Dart/Flutter | [`clients/flutter`](clients/flutter) | REST, JSON-RPC | Pub git dependency, `path: clients/flutter` (not on pub.dev) |
 
-gRPC support for the PHP and Elixir clients is in progress.
+gRPC support for the PHP, Elixir and Dart/Flutter clients is in progress.
 
 ## Features
 
@@ -47,8 +48,8 @@ gRPC support for the PHP and Elixir clients is in progress.
 - Filters and effects: `blur`, `sharpen`, `sepia`, `invert`, `threshold`, `oilPaint`.
 - Output controls: `convertTo`, `quality`, `progressive`, `stripMetadata`.
 - Alpha-channel controls: `removeAlpha`, `ensureAlpha`.
-- Shared operation model across REST, gRPC, JSON-RPC, and the JavaScript, PHP, Go and
-  Elixir clients.
+- Shared operation model across REST, gRPC, JSON-RPC, and the JavaScript, PHP, Go, Elixir
+  and Dart/Flutter clients.
 - Local and Docker Compose deployment options.
 
 ## Quick Start

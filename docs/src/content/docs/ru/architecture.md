@@ -72,11 +72,11 @@ Elysia, Express…) значит: прочитать вход, вызвать `t
 
 ## Клиенты
 
-Sharptown поставляет клиенты на **JavaScript, PHP, Go и Elixir** — у всех общий цепочечный
-API и единая модель операций, с **подключаемыми транспортами**. В npm опубликован только
-JS-клиент; клиенты на PHP, Go и Elixir лежат в репозитории в `clients/<язык>`. См.
-[JS](/ru/docs/js-client), [PHP](/ru/docs/php-client), [Go](/ru/docs/go-client) и
-[Elixir](/ru/docs/elixir-client).
+Sharptown поставляет клиенты на **JavaScript, PHP, Go, Elixir и Dart/Flutter** — у всех общий
+цепочечный API и единая модель операций, с **подключаемыми транспортами**. В npm опубликован
+только JS-клиент; клиенты на PHP, Go, Elixir и Dart/Flutter лежат в репозитории в
+`clients/<язык>`. См. [JS](/ru/docs/js-client), [PHP](/ru/docs/php-client),
+[Go](/ru/docs/go-client), [Elixir](/ru/docs/elixir-client) и [Dart/Flutter](/ru/docs/flutter-client).
 
 ## Решения, о которых стоит знать
 
