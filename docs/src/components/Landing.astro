@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { useTranslations, localizedPath, type Locale } from '../i18n/ui'
+import { absoluteUrl, SITE_NAME } from '../lib/seo'
 
 /**
  * The landing page body, rendered for a given locale. All copy comes from the YAML
@@ -16,6 +17,33 @@ const link = (p: string) => localizedPath(p, locale)
 
 const band = t<Array<{ strong: string; label: string }>>('home.band')
 const features = t<Array<{ mark: string; title: string; body: string }>>('home.features')
+const schema = [
+  {
+    '@type': 'SoftwareSourceCode',
+    name: SITE_NAME,
+    description: t('home.meta_description'),
+    url: absoluteUrl('/', locale),
+    codeRepository: 'https://github.com/e1berd/sharptown',
+    programmingLanguage: ['JavaScript', 'Go', 'PHP', 'Elixir', 'Dart', 'Rust', 'Zig'],
+    runtimePlatform: ['Node.js', 'Fastify', 'gRPC', 'REST', 'WebSocket'],
+    applicationCategory: 'DeveloperApplication',
+    license: 'https://github.com/e1berd/sharptown/blob/main/LICENSE',
+  },
+  {
+    '@type': 'SoftwareApplication',
+    name: SITE_NAME,
+    description: t('home.meta_description'),
+    url: absoluteUrl('/', locale),
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Linux, macOS, Windows',
+    featureList: [
+      'REST image transformation API',
+      'gRPC streaming image processing',
+      'JSON-RPC image transformations over WebSocket',
+      'Sharp-based resize, crop, convert, blur and optimize operations',
+    ],
+  },
+]
 
 const chain = `import { sharptown } from '@sharptown/client'
 
@@ -29,7 +57,7 @@ const webp = await st
   .convert('webp')`
 ---
 
-<BaseLayout title="Sharptown" description={t('home.meta_description')} locale={locale} path="/">
+<BaseLayout title="Sharptown" description={t('home.meta_description')} locale={locale} path="/" schema={schema}>
   <section class="hero">
     <div class="hero__inner">
       <div class="hero__copy">

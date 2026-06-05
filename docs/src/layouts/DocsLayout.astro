@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro'
 import { getNavGroups } from '../lib/nav'
 import { useTranslations, localizedPath, type Locale } from '../i18n/ui'
+import { absoluteUrl, SITE_NAME, SITE_URL } from '../lib/seo'
 import type { MarkdownHeading } from 'astro'
 
 /**
@@ -20,9 +21,57 @@ const t = useTranslations(locale)
 const groups = await getNavGroups(locale)
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3)
 const path = `/docs/${slug}`
+const pageUrl = absoluteUrl(path, locale)
+const schema = [
+  {
+    '@type': 'TechArticle',
+    headline: `${title} · ${SITE_NAME}`,
+    description,
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    inLanguage: locale,
+    author: { '@id': `${SITE_URL}/#organization` },
+    publisher: { '@id': `${SITE_URL}/#organization` },
+    audience: {
+      '@type': 'Audience',
+      audienceType: 'Software developers',
+    },
+    about: [
+      'image processing',
+      'image transformation',
+      'gRPC image processing',
+      'REST image transformation API',
+      'Sharp',
+      'Fastify',
+    ],
+  },
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: SITE_NAME,
+        item: absoluteUrl('/', locale),
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: locale === 'ru' ? 'Документация' : 'Documentation',
+        item: absoluteUrl('/docs/introduction', locale),
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: title,
+        item: pageUrl,
+      },
+    ],
+  },
+]
 ---
 
-<BaseLayout title={`${title} · Sharptown`} description={description} locale={locale} path={path} showMenuToggle>
+<BaseLayout title={`${title} · Sharptown`} description={description} locale={locale} path={path} schema={schema} showMenuToggle>
   <div class="st-docs">
     <aside class="st-sidebar" id="st-sidebar">
       <nav aria-label={t('sidebar.label')}>

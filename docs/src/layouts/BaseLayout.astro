@@ -4,6 +4,7 @@ import Header from '../components/Header.astro'
 import Mermaid from '../components/Mermaid.astro'
 import { useTranslations, type Locale } from '../i18n/ui'
 import { REPO_URL, SOURCECRAFT_URL } from '../lib/links'
+import { absoluteUrl, alternateUrls, baseJsonLd, jsonLdGraph, ogLocale, SITE_NAME } from '../lib/seo'
 
 /**
  * Root HTML shell shared by every page. Inlines a tiny pre-paint script that applies
@@ -16,10 +17,15 @@ interface Props {
   locale: Locale
   path: string
   showMenuToggle?: boolean
+  schema?: Record<string, unknown> | Array<Record<string, unknown>>
 }
-const { title, description, locale, path, showMenuToggle = false } = Astro.props
+const { title, description, locale, path, showMenuToggle = false, schema } = Astro.props
 const t = useTranslations(locale)
 const desc = description ?? t('home.meta_description')
+const canonicalUrl = absoluteUrl(path, locale)
+const alternates = alternateUrls(path)
+const extraSchema = Array.isArray(schema) ? schema : schema ? [schema] : []
+const structuredData = jsonLdGraph([...baseJsonLd(locale, path, title, desc), ...extraSchema])
 ---
 
 <!doctype html>
@@ -28,8 +34,24 @@ const desc = description ?? t('home.meta_description')
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={desc} />
+    <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" />
+    <link rel="canonical" href={canonicalUrl} />
+    {alternates.map((alternate) => (
+      <link rel="alternate" hreflang={alternate.locale} href={alternate.url} />
+    ))}
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:locale" content={ogLocale(locale)} />
+    <meta property="og:locale:alternate" content={ogLocale(locale === 'ru' ? 'en' : 'ru')} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={desc} />
     <title>{title}</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23ffd400'/%3E%3Cpath d='M4 20L20 4' stroke='%230c0c0d' stroke-width='3'/%3E%3C/svg%3E" />
+    <script type="application/ld+json" set:html={structuredData}></script>
     <script is:inline>
       (() => {
         try {

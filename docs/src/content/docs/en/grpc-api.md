@@ -1,11 +1,11 @@
 ---
-title: gRPC API
-description: Bidirectional streaming transform for files of any size.
+title: gRPC Image Processing API
+description: Bidirectional gRPC streaming API for image processing and transformation of files of any size without full memory buffering.
 group: Transports
 order: 2
 ---
 
-# gRPC API
+# gRPC Image Processing API
 
 Alongside REST, Sharptown exposes a gRPC service `ImageProcessor` with **bidirectional
 streaming**. It is designed for files of **any size** — for example a `~3 GB` PNG map
