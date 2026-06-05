@@ -53,6 +53,15 @@ $query = Operations::toQuery($ops);
 $assert('query keeps canonical order + values',
     $query === 'width=800&height=600&aspectRatio=1.7777777778&blur=3&sharpen=true&saturation=1.2&grayscale=true&convertTo=webp&quality=80');
 
+$named = $st->transform(ImageInput::fromString('x'))
+    ->resize(width: 640)
+    ->crop(left: 10, top: 20, width: 300, height: 200)
+    ->tint(b: 20)
+    ->convert('png');
+$namedQuery = Operations::toQuery($named->operations());
+$assert('named arguments serialize correctly',
+    $namedQuery === 'width=640&crop=10%2C20%2C300%2C200&b=20&convertTo=png');
+
 $options = Operations::toOptions($ops);
 $assert('options carry native types', $options['grayscale'] === true && $options['sharpen'] === true && $options['width'] === 800);
 $assert('options skip unset keys', !array_key_exists('height', array_diff_key($options, ['height' => 1])) && !isset($options['rotate']));
@@ -86,6 +95,19 @@ $assert('bare non-file string rejected', $threw);
 $resolved = ImageInput::fromString('abc', 'pic.jpg')->resolve();
 $assert('fromString resolves bytes + content type',
     $resolved['bytes'] === 'abc' && $resolved['contentType'] === 'image/jpeg' && $resolved['filename'] === 'pic.jpg');
+
+$mem = fopen('php://memory', 'r+');
+fwrite($mem, 'streambytes');
+rewind($mem);
+$streamResolved = ImageInput::from($mem)->resolve();
+$assert('stream resource input resolves in-memory (no disk)', $streamResolved['bytes'] === 'streambytes');
+fclose($mem);
+
+$out = fopen('php://memory', 'r+');
+$written = $st->transform(ImageInput::fromString('x'))->convert('webp')->toStream($out);
+rewind($out);
+$assert('toStream writes result to a stream (no disk)', $written === 5 && stream_get_contents($out) === 'BYTES');
+fclose($out);
 
 echo PHP_EOL . ($failures === 0 ? 'ALL PASSED' : "FAILURES: $failures") . PHP_EOL;
 exit($failures === 0 ? 0 : 1);

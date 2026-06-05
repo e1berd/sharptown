@@ -83,4 +83,22 @@ final class Response
         }
         return $path;
     }
+
+    /**
+     * Writes the body to an open stream resource (e.g. `php://output`, `php://memory`, an
+     * S3 upload stream) without touching disk. Returns the number of bytes written.
+     *
+     * @param resource $stream
+     */
+    public function toStream($stream): int
+    {
+        if (!is_resource($stream)) {
+            throw new SharptownError('toStream() expects an open, writable stream resource');
+        }
+        $written = fwrite($stream, $this->body);
+        if ($written === false) {
+            throw new SharptownError('Failed to write the result to the stream');
+        }
+        return $written;
+    }
 }

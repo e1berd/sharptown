@@ -12,6 +12,9 @@
     "require-dev": {
         "phpunit/phpunit": "^10.5"
     },
+    "suggest": {
+        "psr/http-message": "Pass a PSR-7 StreamInterface (e.g. an S3/Guzzle response body) straight to transform()."
+    },
     "autoload": {
         "psr-4": {
             "Sharptown\\Client\\": "src/"

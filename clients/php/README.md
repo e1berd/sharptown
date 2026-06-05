@@ -42,24 +42,32 @@ $st = sharptown('ws://localhost:3002', transport: jsonrpc());
 All transports accept the same builder, validate operations identically, and return the
 same `Response`, so swapping one for another never changes your calling code.
 
-## Inputs
+## Inputs — no disk required
 
-A bare string is treated as an `http(s)` URL or an existing file path. For raw bytes or
-streams, use the explicit constructors:
+`transform()` accepts a path/URL string, an `SplFileInfo`, a stream resource, a PSR-7
+`StreamInterface`, or raw bytes — so an image can be edited entirely in memory.
 
 ```php
 use Sharptown\Client\Input\ImageInput;
 
-$st->transform('photo.jpg');                          // file path
-$st->transform('https://example.com/cat.jpg');        // fetched over HTTP
-$st->transform(ImageInput::fromString($binary, 'upload.png'));
-$st->transform(ImageInput::fromResource($stream, 'in.jpg'));
+$st->transform('photo.jpg');                    // file path (disk)
+$st->transform('https://example.com/cat.jpg');  // fetched over HTTP
+$st->transform($streamResource);                // any open stream (php://memory, upload…)
+$st->transform(ImageInput::fromString($binary, 'upload.png')); // raw bytes
+```
+
+From S3 / Guzzle, never touching disk — an object/response body is a PSR-7 stream:
+
+```php
+$object = $s3->getObject(['Bucket' => 'bucket', 'Key' => 'photo.jpg']);
+$webp = $st->transform($object['Body'])->resize(width: 1280)->convert('webp')->bytes();
 ```
 
 ## Getting the result
 
 ```php
-$bytes = $st->transform($file)->convert('webp')->bytes();        // raw bytes
+$bytes = $st->transform($file)->convert('webp')->bytes();        // raw bytes (in memory)
+$st->transform($file)->convert('webp')->toStream($stream);       // write to a stream (no disk)
 $st->transform($file)->convert('webp')->toFile('out.webp');      // write to disk
 
 $res = $st->transform($file)->convert('webp')->response();       // full response

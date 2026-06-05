@@ -67,19 +67,34 @@ $bytes = $st->transform($file)
     ->bytes();
 ```
 
-### Accepted inputs
+### Accepted inputs — no disk required
 
-A bare string is treated as an `http(s)` URL or an existing file path — never as raw bytes.
-For bytes or streams, use the explicit constructors:
+`transform()` accepts a path/URL string, an `SplFileInfo`, a **stream resource**, a **PSR-7
+`StreamInterface`**, or raw bytes — so an image can be edited entirely in memory, without
+reading from or writing to disk. (A bare string is an `http(s)` URL or a file path, never
+raw bytes — use `ImageInput::fromString()` for those.)
 
 ```php
 use Sharptown\Client\Input\ImageInput;
 
-$st->transform('photo.jpg');                          // file path
-$st->transform('https://example.com/cat.jpg');        // fetched over HTTP
-$st->transform(ImageInput::fromString($binary, 'upload.png'));
-$st->transform(ImageInput::fromResource($stream, 'in.jpg'));
-$st->transform(new SplFileInfo('photo.jpg'));
+$st->transform('photo.jpg');                    // file path (disk)
+$st->transform('https://example.com/cat.jpg');  // fetched over HTTP
+$st->transform($streamResource);                // any open stream (php://memory, upload…)
+$st->transform(ImageInput::fromString($binary, 'upload.png')); // raw bytes
+```
+
+#### From S3 / Guzzle, fully in memory
+
+An S3 object body (AWS SDK) or a Guzzle response body is a PSR-7 `StreamInterface` — pass it
+straight in; nothing touches disk:
+
+```php
+$object = $s3->getObject(['Bucket' => 'bucket', 'Key' => 'photo.jpg']);
+
+$webp = $st->transform($object['Body'])   // PSR-7 stream from S3
+    ->resize(width: 1280)
+    ->convert('webp')
+    ->bytes();                            // result stays in memory too
 ```
 
 ### Operation methods
@@ -88,9 +103,9 @@ Resize & crop:
 
 | Method | Description |
 | ------ | ----------- |
-| `->resize($width, $height = null)` | Resize. Also accepts `['width' => …, 'height' => …]`. |
+| `->resize($width, $height = null)` | Resize. Pass `width`/`height` by name too: `->resize(width: 800)`. |
 | `->width($n)` / `->height($n)` | Set one dimension. |
-| `->crop($x, $y, $w, $h)` | Crop a rectangle. Also accepts `['left','top','width','height']`. |
+| `->crop($left, $top, $width, $height)` | Crop a rectangle. Named args supported: `->crop(left: 10, top: 20, width: 300, height: 200)`. |
 | `->smartCrop($enabled = true)` | Crop to the salient region when resizing. |
 | `->fit($mode)` | `cover` / `contain` / `fill` / `inside` / `outside`. |
 | `->background($color)` | Background for `fit: 'contain'`. |
@@ -111,7 +126,7 @@ Tone, colour & effects:
 | `->hue($n)` | Hue rotation `0`–`360`. |
 | `->gamma($n)` | Gamma `1.0`–`3.0`. |
 | `->colorize($color)` | Map to shades of one colour. |
-| `->tint($r, $g, $b)` | Tint. Also accepts `['r' => …, 'g' => …, 'b' => …]`. |
+| `->tint($r, $g, $b)` | Tint; each channel optional, pass by name e.g. `->tint(r: 255)`. |
 | `->grayscale($enabled = true)` | Desaturate (`->greyscale` is an alias). |
 | `->blur($sigma = 1)` | Gaussian blur. |
 | `->sharpen($sigma = null)` | Sharpen; no argument uses the default. |
@@ -138,7 +153,8 @@ format throws a `SharptownError` immediately.
 | Terminal | Returns |
 | -------- | ------- |
 | `->response()` | `Response` (status, headers, bytes) |
-| `->bytes()` | raw image bytes (`string`) |
+| `->bytes()` | raw image bytes (`string`) — stays in memory |
+| `->toStream($stream)` | writes to a stream resource (no disk), returns bytes written |
 | `->toFile($path)` / `->save($path)` | writes to disk, returns the path |
 
 ```php

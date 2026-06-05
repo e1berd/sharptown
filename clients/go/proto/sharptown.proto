@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package sharptown.v1;
+
+option go_package = "github.com/e1berd/sharptown/clients/go/internal/pb;pb";
+
+// Image processing service backed by sharp. Mirrors packages/server-grpc/proto.
+service ImageProcessor {
+  rpc Transform(stream TransformRequest) returns (stream TransformResponse);
+}
+
+message TransformOptions {
+  optional uint32 width        = 1;
+  optional uint32 height       = 2;
+  optional int32  rotate       = 3;
+  bool            flip         = 4;
+  optional uint32 blur         = 5;
+  optional uint32 tint_r       = 6;
+  optional uint32 tint_g       = 7;
+  optional uint32 tint_b       = 8;
+  bool            grayscale    = 9;
+  bool            remove_alpha = 10;
+  bool            ensure_alpha = 11;
+  string          convert_to   = 12;
+
+  string          crop          = 13;
+  string          crop_offset   = 14;
+  bool            smart_crop    = 15;
+  string          fit           = 16;
+  string          background    = 17;
+  bool            auto_orient   = 18;
+  optional double dpr           = 19;
+  optional double aspect_ratio  = 20;
+
+  optional double brightness    = 21;
+  optional double contrast      = 22;
+  optional double saturation    = 23;
+  optional double exposure      = 24;
+  optional double hue           = 25;
+  optional double gamma         = 26;
+  string          colorize      = 27;
+
+  optional double sepia         = 28;
+  bool            invert        = 29;
+  optional uint32 threshold     = 30;
+  optional double sharpen       = 31;
+  optional uint32 oil_paint     = 32;
+
+  optional uint32 quality        = 33;
+  bool            progressive    = 34;
+  optional bool   strip_metadata = 35;
+}
+
+message TransformRequest {
+  oneof payload {
+    TransformOptions options = 1;
+    bytes            chunk   = 2;
+  }
+}
+
+message TransformResponse {
+  bytes chunk = 1;
+}

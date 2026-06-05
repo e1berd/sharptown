@@ -41,20 +41,14 @@ final class TransformBuilder
     }
 
     /**
-     * Resize. Accepts `(width, height)`, just `(width)`, or `['width' => …, 'height' => …]`.
-     *
-     * @param int|array{width?: int, height?: int}|null $width
+     * Resize. Pass `width` and/or `height` — positionally or by name.
      *
      * @example
      * $st->transform($file)->resize(800, 600);
-     * $st->transform($file)->resize(['width' => 800]);
+     * $st->transform($file)->resize(width: 800);
      */
-    public function resize(int|array|null $width = null, ?int $height = null): static
+    public function resize(?int $width = null, ?int $height = null): static
     {
-        if (is_array($width)) {
-            $height = $width['height'] ?? null;
-            $width = $width['width'] ?? null;
-        }
         if ($width !== null) {
             $this->ops['width'] = Operations::toPositiveInt($width, 'width');
         }
@@ -77,25 +71,17 @@ final class TransformBuilder
     }
 
     /**
-     * Crops a rectangle. Accepts `(x, y, width, height)` or
-     * `['left' => …, 'top' => …, 'width' => …, 'height' => …]`.
+     * Crops a rectangle. Pass the corner and size positionally or by name.
      *
-     * @param int|array{left?: int, top?: int, width: int, height: int} $x
+     * @example
+     * $st->transform($file)->crop(10, 20, 300, 200);
+     * $st->transform($file)->crop(left: 10, top: 20, width: 300, height: 200);
      */
-    public function crop(int|array $x, ?int $y = null, ?int $width = null, ?int $height = null): static
+    public function crop(int $left, int $top, int $width, int $height): static
     {
-        if (is_array($x)) {
-            $left = Operations::toPositiveInt($x['left'] ?? 0, 'crop.left');
-            $top = Operations::toPositiveInt($x['top'] ?? 0, 'crop.top');
-            $w = Operations::toPositiveInt($x['width'] ?? null, 'crop.width');
-            $h = Operations::toPositiveInt($x['height'] ?? null, 'crop.height');
-            $this->ops['crop'] = "$left,$top,$w,$h";
-            return $this;
-        }
-
         $this->ops['crop'] = implode(',', [
-            Operations::toPositiveInt($x, 'crop.x'),
-            Operations::toPositiveInt($y, 'crop.y'),
+            Operations::toPositiveInt($left, 'crop.left'),
+            Operations::toPositiveInt($top, 'crop.top'),
             Operations::toPositiveInt($width, 'crop.width'),
             Operations::toPositiveInt($height, 'crop.height'),
         ]);
@@ -176,18 +162,14 @@ final class TransformBuilder
     }
 
     /**
-     * Tints with a colour. Accepts `(r, g, b)` or `['r' => …, 'g' => …, 'b' => …]`. Each
-     * channel is optional (0–255).
+     * Tints with a colour. Each channel is optional (0–255); pass them positionally or by name.
      *
-     * @param int|array{r?: int, g?: int, b?: int} $r
+     * @example
+     * $st->transform($file)->tint(255, 0, 0);
+     * $st->transform($file)->tint(b: 20);
      */
-    public function tint(int|array $r, ?int $g = null, ?int $b = null): static
+    public function tint(?int $r = null, ?int $g = null, ?int $b = null): static
     {
-        if (is_array($r)) {
-            $g = $r['g'] ?? null;
-            $b = $r['b'] ?? null;
-            $r = $r['r'] ?? null;
-        }
         if ($r !== null) {
             $this->ops['r'] = Operations::toColor($r, 'r');
         }
@@ -390,5 +372,16 @@ final class TransformBuilder
     public function save(string $path): string
     {
         return $this->toFile($path);
+    }
+
+    /**
+     * Runs the request and writes the result to a stream resource without touching disk.
+     * Returns the number of bytes written.
+     *
+     * @param resource $stream
+     */
+    public function toStream($stream): int
+    {
+        return $this->response()->toStream($stream);
     }
 }

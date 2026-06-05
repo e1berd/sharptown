@@ -48,6 +48,17 @@ $png2 = $rest->convert(ImageInput::fromString($png, 'in.png'), 'png')->bytes();
 $dims = getimagesizefromstring($png2);
 $check('REST convert(png) returns a PNG', is_array($dims) && $dims[2] === IMAGETYPE_PNG);
 
+$memIn = fopen('php://memory', 'r+');
+fwrite($memIn, $png);
+rewind($memIn);
+$memOut = fopen('php://memory', 'r+');
+$written = $rest->transform($memIn)->resize(width: 40)->convert('webp')->toStream($memOut);
+rewind($memOut);
+$streamOut = stream_get_contents($memOut);
+fclose($memIn);
+fclose($memOut);
+$check('REST stream-in → stream-out (no disk)', $written > 0 && $isWebp($streamOut), strlen($streamOut) . ' bytes');
+
 $threw = false;
 $status = null;
 try {

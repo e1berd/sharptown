@@ -67,19 +67,34 @@ $bytes = $st->transform($file)
     ->bytes();
 ```
 
-### Допустимые входы
+### Допустимые входы — без диска
 
-Обычная строка трактуется как `http(s)`-URL или путь к существующему файлу — но не как сырые
-байты. Для байтов или потоков используйте явные конструкторы:
+`transform()` принимает строку-путь/URL, `SplFileInfo`, **поток-ресурс**, **PSR-7
+`StreamInterface`** или сырые байты — поэтому изображение можно редактировать целиком в
+памяти, не читая с диска и не записывая на него. (Обычная строка — это `http(s)`-URL или путь
+к файлу, но не сырые байты; для байтов используйте `ImageInput::fromString()`.)
 
 ```php
 use Sharptown\Client\Input\ImageInput;
 
-$st->transform('photo.jpg');                          // путь к файлу
-$st->transform('https://example.com/cat.jpg');        // будет загружено по HTTP
-$st->transform(ImageInput::fromString($binary, 'upload.png'));
-$st->transform(ImageInput::fromResource($stream, 'in.jpg'));
-$st->transform(new SplFileInfo('photo.jpg'));
+$st->transform('photo.jpg');                    // путь к файлу (диск)
+$st->transform('https://example.com/cat.jpg');  // загрузка по HTTP
+$st->transform($streamResource);                // любой поток (php://memory, загрузка…)
+$st->transform(ImageInput::fromString($binary, 'upload.png')); // сырые байты
+```
+
+#### Из S3 / Guzzle, целиком в памяти
+
+Тело объекта S3 (AWS SDK) или тело ответа Guzzle — это PSR-7 `StreamInterface`; передайте его
+напрямую, диск не задействуется:
+
+```php
+$object = $s3->getObject(['Bucket' => 'bucket', 'Key' => 'photo.jpg']);
+
+$webp = $st->transform($object['Body'])   // PSR-7-поток из S3
+    ->resize(width: 1280)
+    ->convert('webp')
+    ->bytes();                            // результат тоже остаётся в памяти
 ```
 
 ### Методы операций
@@ -88,9 +103,9 @@ $st->transform(new SplFileInfo('photo.jpg'));
 
 | Метод | Описание |
 | ----- | -------- |
-| `->resize($width, $height = null)` | Изменение размера. Также принимает `['width' => …, 'height' => …]`. |
+| `->resize($width, $height = null)` | Изменение размера. Можно по имени: `->resize(width: 800)`. |
 | `->width($n)` / `->height($n)` | Задать одну сторону. |
-| `->crop($x, $y, $w, $h)` | Вырезать прямоугольник. Также принимает `['left','top','width','height']`. |
+| `->crop($left, $top, $width, $height)` | Вырезать прямоугольник. Можно по имени: `->crop(left: 10, top: 20, width: 300, height: 200)`. |
 | `->smartCrop($enabled = true)` | Кадрировать по значимой области при ресайзе. |
 | `->fit($mode)` | `cover` / `contain` / `fill` / `inside` / `outside`. |
 | `->background($color)` | Фон для `fit: 'contain'`. |
@@ -111,7 +126,7 @@ $st->transform(new SplFileInfo('photo.jpg'));
 | `->hue($n)` | Поворот оттенка `0`–`360`. |
 | `->gamma($n)` | Гамма `1.0`–`3.0`. |
 | `->colorize($color)` | Свести к оттенкам одного цвета. |
-| `->tint($r, $g, $b)` | Тонирование. Также принимает `['r' => …, 'g' => …, 'b' => …]`. |
+| `->tint($r, $g, $b)` | Тонирование; каждый канал необязателен, можно по имени: `->tint(r: 255)`. |
 | `->grayscale($enabled = true)` | Обесцветить (`->greyscale` — алиас). |
 | `->blur($sigma = 1)` | Размытие по Гауссу. |
 | `->sharpen($sigma = null)` | Резкость; без аргумента — значение по умолчанию. |
@@ -138,7 +153,8 @@ $st->transform(new SplFileInfo('photo.jpg'));
 | Терминал | Возвращает |
 | -------- | ---------- |
 | `->response()` | `Response` (статус, заголовки, байты) |
-| `->bytes()` | сырые байты изображения (`string`) |
+| `->bytes()` | сырые байты изображения (`string`) — остаются в памяти |
+| `->toStream($stream)` | пишет в поток-ресурс (без диска), возвращает число байт |
 | `->toFile($path)` / `->save($path)` | пишет на диск, возвращает путь |
 
 ```php

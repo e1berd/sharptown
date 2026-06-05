@@ -65,13 +65,15 @@ final class SharptownClient
     /**
      * Starts an image transformation chain.
      *
-     * @param string|ImageInput|SplFileInfo $input The image source (URL, path, or {@link ImageInput}).
+     * @param mixed $input The image source: a path/URL string, an {@link ImageInput}, an
+     *   {@link SplFileInfo}, a stream resource, a PSR-7 `StreamInterface` (e.g. an S3/Guzzle
+     *   body), or raw bytes via {@link ImageInput::fromString()}.
      * @param string|null $filename File name used in the multipart request.
      *
      * @example
      * $st->transform($file)->resize(400)->blur(2)->convert('webp')->toFile('out.webp');
      */
-    public function transform(string|ImageInput|SplFileInfo $input, ?string $filename = null): TransformBuilder
+    public function transform(mixed $input, ?string $filename = null): TransformBuilder
     {
         return new TransformBuilder(
             $this->transport,
@@ -86,10 +88,10 @@ final class SharptownClient
     /**
      * Shortcut: format conversion only.
      *
-     * @param string|ImageInput|SplFileInfo $input
+     * @param mixed $input Any source accepted by {@link transform()}.
      */
     public function convert(
-        string|ImageInput|SplFileInfo $input,
+        mixed $input,
         string $format,
         ?string $filename = null,
     ): TransformBuilder {
@@ -99,12 +101,11 @@ final class SharptownClient
     /**
      * Shortcut: resize only.
      *
-     * @param string|ImageInput|SplFileInfo $input
-     * @param int|array{width?: int, height?: int} $width
+     * @param mixed $input Any source accepted by {@link transform()}.
      */
     public function resize(
-        string|ImageInput|SplFileInfo $input,
-        int|array $width,
+        mixed $input,
+        ?int $width = null,
         ?int $height = null,
         ?string $filename = null,
     ): TransformBuilder {

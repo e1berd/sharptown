@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sharptown\Client\Input;
 
+use Psr\Http\Message\StreamInterface;
 use SplFileInfo;
 use Sharptown\Client\Http\CurlHttpClient;
 use Sharptown\Client\Http\HttpClient;
@@ -28,6 +29,7 @@ final class ImageInput
     private const KIND_BYTES = 'bytes';
     private const KIND_URL = 'url';
     private const KIND_RESOURCE = 'resource';
+    private const KIND_PSR = 'psr';
 
     private function __construct(
         private string $kind,
@@ -63,27 +65,53 @@ final class ImageInput
     }
 
     /**
-     * Normalizes any accepted input into an {@link ImageInput}.
+     * An image from a PSR-7 stream — e.g. an S3/Guzzle response body, so the image never
+     * touches disk.
      *
-     * @param string|self|SplFileInfo $input
+     * @example
+     * $object = $s3->getObject(['Bucket' => 'b', 'Key' => 'photo.jpg']);
+     * ImageInput::fromPsrStream($object['Body'], 'photo.jpg');
      */
-    public static function from(string|self|SplFileInfo $input): self
+    public static function fromPsrStream(StreamInterface $stream, ?string $filename = null): self
+    {
+        return new self(self::KIND_PSR, $stream, $filename);
+    }
+
+    /**
+     * Normalizes any accepted input into an {@link ImageInput}: an existing instance, a
+     * stream resource, a PSR-7 {@link StreamInterface}, an {@link SplFileInfo}, or a string
+     * (an `http(s)` URL or an existing file path — never raw bytes; use {@link fromString()}).
+     */
+    public static function from(mixed $input): self
     {
         if ($input instanceof self) {
             return $input;
         }
+        if (is_resource($input)) {
+            return self::fromResource($input);
+        }
+        if ($input instanceof StreamInterface) {
+            return self::fromPsrStream($input);
+        }
         if ($input instanceof SplFileInfo) {
             return self::fromPath($input->getPathname());
         }
-        if (preg_match('#^https?://#i', $input) === 1) {
-            return self::fromUrl($input);
-        }
-        if (is_file($input)) {
-            return self::fromPath($input);
+        if (is_string($input)) {
+            if (preg_match('#^https?://#i', $input) === 1) {
+                return self::fromUrl($input);
+            }
+            if (is_file($input)) {
+                return self::fromPath($input);
+            }
+            throw new SharptownError(sprintf(
+                'transform(): "%s" is not an http(s) URL or an existing file. For raw image bytes use ImageInput::fromString().',
+                $input,
+            ));
         }
         throw new SharptownError(sprintf(
-            'transform(): "%s" is not an http(s) URL or an existing file. For raw image bytes use ImageInput::fromString().',
-            $input,
+            'transform(): unsupported input type %s. Pass a path/URL string, an SplFileInfo, a stream resource, '
+            . 'a PSR-7 StreamInterface, or raw bytes via ImageInput::fromString().',
+            get_debug_type($input),
         ));
     }
 
@@ -99,6 +127,7 @@ final class ImageInput
             self::KIND_BYTES => $this->resolveBytes(),
             self::KIND_URL => $this->resolveUrl($http ?? new CurlHttpClient()),
             self::KIND_RESOURCE => $this->resolveResource(),
+            self::KIND_PSR => $this->resolvePsrStream(),
             default => throw new SharptownError('Unknown image input kind: ' . $this->kind),
         };
     }
@@ -159,6 +188,20 @@ final class ImageInput
         }
         $filename = $this->filename ?? 'image';
         return ['bytes' => $bytes, 'filename' => $filename, 'contentType' => self::guessContentType($filename)];
+    }
+
+    /**
+     * @return array{bytes: string, filename: string, contentType: string}
+     */
+    private function resolvePsrStream(): array
+    {
+        /** @var StreamInterface $stream */
+        $stream = $this->source;
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+        $filename = $this->filename ?? 'image';
+        return ['bytes' => $stream->getContents(), 'filename' => $filename, 'contentType' => self::guessContentType($filename)];
     }
 
     private static function guessContentType(string $filename): string

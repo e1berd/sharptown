@@ -1,0 +1,18 @@
+# protoc plugins (once):
+#   go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+#   go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+# Regenerate the gRPC stubs from proto/sharptown.proto.
+generate:
+    protoc --proto_path=proto \
+        --go_out=. --go_opt=module=github.com/e1berd/sharptown/clients/go \
+        --go-grpc_out=. --go-grpc_opt=module=github.com/e1berd/sharptown/clients/go \
+        proto/sharptown.proto
+
+# Run unit tests (no servers needed).
+test:
+    go test ./...
+
+# Run end-to-end tests against running servers (pnpm rest / jsonrpc / grpc).
+e2e:
+    go test -tags e2e -v ./...
