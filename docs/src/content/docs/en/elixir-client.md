@@ -113,6 +113,18 @@ case Sharptown.run(transform) do
 end
 ```
 
+## Signed image proxy
+
+Build a signed URL for the server's [`GET /fetch`](/docs/image-proxy) endpoint, suitable for
+an `<img src>`: the server downloads, transforms, and caches the remote image. Pass
+`:proxy_secret` (the server's `SHARPTOWN_PROXY_KEY`).
+
+```elixir
+"https://img.example.com"
+|> Sharptown.client(proxy_secret: System.fetch_env!("SHARPTOWN_PROXY_KEY"))
+|> Sharptown.signed_url("https://example.com/photo.jpg", %{"width" => 800, "convertTo" => "webp"})
+```
+
 ## Transports
 
 The same client speaks every Sharptown transport. See [REST API](/docs/rest-api) and

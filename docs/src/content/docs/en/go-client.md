@@ -111,6 +111,22 @@ if errors.As(err, &se) {
 }
 ```
 
+## Signed image proxy
+
+Build a signed URL for the server's [`GET /fetch`](/docs/image-proxy) endpoint, suitable for
+an `<img src>`: the server downloads, transforms, and caches the remote image. Configure the
+shared secret with `WithProxySecret` (the server's `SHARPTOWN_PROXY_KEY`).
+
+```go
+c := sharptown.New("https://img.example.com", sharptown.WithProxySecret(secret))
+
+src, err := c.SignedURL("https://example.com/photo.jpg", map[string]any{
+    "width": 800, "convertTo": "webp",
+})
+```
+
+`(*Transform).SignedURL(source)` signs the operations accumulated on a builder instead.
+
 ## Transports
 
 The same client speaks every Sharptown transport. See [REST API](/docs/rest-api),

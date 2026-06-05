@@ -120,6 +120,22 @@ match st.transform(Input::path("photo.jpg")).convert("webp").bytes() {
 }
 ```
 
+## Подписанный image-прокси
+
+Постройте подписанный URL для эндпоинта [`GET /fetch`](/ru/docs/image-proxy) — его можно
+вставить прямо в тег `<img>`: сервер скачает, преобразует и закэширует удалённое изображение.
+Задайте общий секрет через `with_proxy_secret` (серверный `SHARPTOWN_PROXY_KEY`).
+
+```rust
+let client = Client::new("https://img.example.com").with_proxy_secret(secret);
+
+let mut ops = Operations::new();
+ops.insert("width".into(), OperationValue::Int(800));
+ops.insert("convertTo".into(), OperationValue::String("webp".into()));
+
+let src = client.signed_url("https://example.com/photo.jpg", &ops)?;
+```
+
 ## gRPC
 
 gRPC в Rust-клиенте пока не реализован. Серверный протокол уже поддерживает

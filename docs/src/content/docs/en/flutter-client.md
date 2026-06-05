@@ -112,6 +112,18 @@ try {
 }
 ```
 
+## Signed image proxy
+
+Build a signed URL for the server's [`GET /fetch`](/docs/image-proxy) endpoint, suitable for
+an `<img src>`: the server downloads, transforms, and caches the remote image. Pass
+`proxySecret` (the server's `SHARPTOWN_PROXY_KEY`); sign on a trusted server only.
+
+```dart
+final st = SharptownClient('https://img.example.com', proxySecret: secret);
+
+final src = st.signedUrl('https://example.com/photo.jpg', {'width': 800, 'convertTo': 'webp'});
+```
+
 ## Transports
 
 The same client speaks every Sharptown transport. See [REST API](/docs/rest-api) and

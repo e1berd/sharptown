@@ -111,6 +111,22 @@ if errors.As(err, &se) {
 }
 ```
 
+## Подписанный image-прокси
+
+Постройте подписанный URL для эндпоинта [`GET /fetch`](/ru/docs/image-proxy) — его можно
+вставить прямо в `<img src>`: сервер скачает, преобразует и закэширует удалённое изображение.
+Задайте общий секрет через `WithProxySecret` (серверный `SHARPTOWN_PROXY_KEY`).
+
+```go
+c := sharptown.New("https://img.example.com", sharptown.WithProxySecret(secret))
+
+src, err := c.SignedURL("https://example.com/photo.jpg", map[string]any{
+    "width": 800, "convertTo": "webp",
+})
+```
+
+`(*Transform).SignedURL(source)` подписывает операции, накопленные в билдере.
+
 ## Транспорты
 
 Один и тот же клиент говорит на всех транспортах Sharptown. См. [REST API](/ru/docs/rest-api),

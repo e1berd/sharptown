@@ -235,6 +235,19 @@ $st = sharptown(
 
 - **Один клиент на воркер** — переиспользуемый cURL-handle нельзя шарить между потоками.
 
+## Подписанный image-прокси
+
+Постройте подписанный URL для эндпоинта [`GET /fetch`](/ru/docs/image-proxy) — его можно
+вставить прямо в `<img src>`: сервер скачает, преобразует и закэширует удалённое изображение.
+Передайте общий `proxySecret` (серверный `SHARPTOWN_PROXY_KEY`); подписывайте только на
+доверенном сервере.
+
+```php
+$st = sharptown('https://img.example.com', proxySecret: getenv('SHARPTOWN_PROXY_KEY'));
+
+$src = $st->signedUrl('https://example.com/photo.jpg', ['width' => 800, 'convertTo' => 'webp']);
+```
+
 ## Транспорты
 
 Один и тот же клиент говорит на всех транспортах Sharptown. См.:

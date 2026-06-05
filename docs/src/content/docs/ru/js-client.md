@@ -169,6 +169,22 @@ const st = sharptown('http://localhost:3001', {
 })
 ```
 
+## Подписанный image-прокси
+
+Постройте подписанный URL для эндпоинта [`GET /fetch`](/ru/docs/image-proxy) и вставьте его
+прямо в `<img src>` — сервер скачает, преобразует и закэширует удалённое изображение.
+Передайте общий `proxySecret` (серверный `SHARPTOWN_PROXY_KEY`); подписывайте только на
+доверенном сервере и никогда не кладите секрет в браузерный бандл.
+
+```js
+const st = sharptown('https://img.example.com', { proxySecret: process.env.SHARPTOWN_PROXY_KEY })
+const src = await st.signedUrl('https://example.com/photo.jpg', { width: 800, convertTo: 'webp' })
+// => https://img.example.com/api/v1/fetch?...&sig=...
+```
+
+`signedUrl(source, operations)` возвращает `Promise<string>`; отдельный экспорт
+`buildProxyUrl` делает то же без экземпляра клиента.
+
 ## Экспорты
 
 ```js

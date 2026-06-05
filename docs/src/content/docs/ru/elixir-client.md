@@ -113,6 +113,18 @@ case Sharptown.run(transform) do
 end
 ```
 
+## Подписанный image-прокси
+
+Постройте подписанный URL для эндпоинта [`GET /fetch`](/ru/docs/image-proxy) — его можно
+вставить прямо в `<img src>`: сервер скачает, преобразует и закэширует удалённое изображение.
+Передайте `:proxy_secret` (серверный `SHARPTOWN_PROXY_KEY`).
+
+```elixir
+"https://img.example.com"
+|> Sharptown.client(proxy_secret: System.fetch_env!("SHARPTOWN_PROXY_KEY"))
+|> Sharptown.signed_url("https://example.com/photo.jpg", %{"width" => 800, "convertTo" => "webp"})
+```
+
 ## Транспорты
 
 Один и тот же клиент говорит на всех транспортах Sharptown. См. [REST API](/ru/docs/rest-api)

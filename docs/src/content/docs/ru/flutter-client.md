@@ -113,6 +113,19 @@ try {
 }
 ```
 
+## Подписанный image-прокси
+
+Постройте подписанный URL для эндпоинта [`GET /fetch`](/ru/docs/image-proxy) — его можно
+вставить прямо в `<img src>`: сервер скачает, преобразует и закэширует удалённое изображение.
+Передайте `proxySecret` (серверный `SHARPTOWN_PROXY_KEY`); подписывайте только на доверенном
+сервере.
+
+```dart
+final st = SharptownClient('https://img.example.com', proxySecret: secret);
+
+final src = st.signedUrl('https://example.com/photo.jpg', {'width': 800, 'convertTo': 'webp'});
+```
+
 ## Транспорты
 
 Один и тот же клиент говорит на всех транспортах Sharptown. См. [REST API](/ru/docs/rest-api)

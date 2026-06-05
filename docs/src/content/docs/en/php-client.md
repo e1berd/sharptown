@@ -234,6 +234,18 @@ under long-lived workers:
 
 - **One client per worker** — a reused cURL handle is not safe to share across threads.
 
+## Signed image proxy
+
+Build a signed URL for the server's [`GET /fetch`](/docs/image-proxy) endpoint, suitable for
+an `<img src>`: the server downloads, transforms, and caches the remote image. Pass the
+shared `proxySecret` (the server's `SHARPTOWN_PROXY_KEY`); sign on a trusted server only.
+
+```php
+$st = sharptown('https://img.example.com', proxySecret: getenv('SHARPTOWN_PROXY_KEY'));
+
+$src = $st->signedUrl('https://example.com/photo.jpg', ['width' => 800, 'convertTo' => 'webp']);
+```
+
 ## Transports
 
 The same client speaks every Sharptown transport. See:
