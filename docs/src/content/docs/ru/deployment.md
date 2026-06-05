@@ -143,6 +143,81 @@ rpc.example.com {
 }
 ```
 
+### Один домен с префиксом `/image-process/`
+
+Если основное приложение уже живёт на одном домене, Sharptown можно опубликовать под
+отдельным префиксом. В примере ниже:
+
+- `POST /image-process/api/v1/transform` проксируется в REST-контейнер как
+  `POST /api/v1/transform`;
+- `wss://app.example.com/image-process/rpc` проксируется в JSON-RPC-контейнер как
+  WebSocket `/rpc`.
+
+Если nginx или Caddy запущен на хосте, используйте `127.0.0.1:3001` и
+`127.0.0.1:3002` при опубликованных compose-портах. Если прокси запущен в той же
+docker compose-сети, замените их на имена сервисов: `rest:3001` и `jsonrpc:3002`.
+
+**nginx**
+
+```nginx
+# В контексте http {}, рядом с server {}
+map $http_upgrade $sharptown_connection_upgrade {
+  default upgrade;
+  ''      close;
+}
+
+server {
+  listen 80;
+  server_name app.example.com;
+
+  client_max_body_size 100m;
+
+  location = /image-process/rpc {
+    proxy_pass http://127.0.0.1:3002/rpc;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade    $http_upgrade;
+    proxy_set_header Connection $sharptown_connection_upgrade;
+    proxy_set_header Host       $host;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+  }
+
+  location /image-process/ {
+    proxy_pass http://127.0.0.1:3001/;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+```
+
+У `proxy_pass http://127.0.0.1:3001/;` важен завершающий `/`: nginx снимет публичный
+префикс `/image-process/` и отправит в REST-сервис путь без него.
+
+**Caddy**
+
+```caddy
+app.example.com {
+  request_body {
+    max_size 100MB
+  }
+
+  handle /image-process/rpc {
+    rewrite * /rpc
+    reverse_proxy 127.0.0.1:3002
+  }
+
+  handle_path /image-process/* {
+    reverse_proxy 127.0.0.1:3001
+  }
+}
+```
+
+`handle_path` снимает префикс `/image-process/` автоматически, поэтому REST-сервис
+получает свой штатный путь `/api/v1/transform`. Для JSON-RPC префикс снимается явным
+`rewrite`, а WebSocket-апгрейд Caddy проксирует автоматически.
+
 ### gRPC (HTTP/2, `:50051`)
 
 gRPC требует **HTTP/2**. gRPC-сервер Sharptown работает в открытом виде

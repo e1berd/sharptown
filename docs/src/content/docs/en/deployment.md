@@ -141,6 +141,81 @@ rpc.example.com {
 }
 ```
 
+### One domain with an `/image-process/` prefix
+
+If the main application already lives on one domain, you can expose Sharptown under a
+dedicated path prefix. In the example below:
+
+- `POST /image-process/api/v1/transform` is proxied to the REST container as
+  `POST /api/v1/transform`;
+- `wss://app.example.com/image-process/rpc` is proxied to the JSON-RPC container as the
+  `/rpc` WebSocket.
+
+If nginx or Caddy runs on the host, use `127.0.0.1:3001` and `127.0.0.1:3002` with the
+compose ports published. If the proxy runs in the same docker compose network, replace
+those targets with the service names: `rest:3001` and `jsonrpc:3002`.
+
+**nginx**
+
+```nginx
+# In the http {} context, next to server {}
+map $http_upgrade $sharptown_connection_upgrade {
+  default upgrade;
+  ''      close;
+}
+
+server {
+  listen 80;
+  server_name app.example.com;
+
+  client_max_body_size 100m;
+
+  location = /image-process/rpc {
+    proxy_pass http://127.0.0.1:3002/rpc;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade    $http_upgrade;
+    proxy_set_header Connection $sharptown_connection_upgrade;
+    proxy_set_header Host       $host;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+  }
+
+  location /image-process/ {
+    proxy_pass http://127.0.0.1:3001/;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+```
+
+The trailing `/` in `proxy_pass http://127.0.0.1:3001/;` matters: nginx strips the public
+`/image-process/` prefix and sends the REST service the path without it.
+
+**Caddy**
+
+```caddy
+app.example.com {
+  request_body {
+    max_size 100MB
+  }
+
+  handle /image-process/rpc {
+    rewrite * /rpc
+    reverse_proxy 127.0.0.1:3002
+  }
+
+  handle_path /image-process/* {
+    reverse_proxy 127.0.0.1:3001
+  }
+}
+```
+
+`handle_path` strips the `/image-process/` prefix automatically, so the REST service
+receives its normal `/api/v1/transform` path. For JSON-RPC the prefix is stripped by the
+explicit `rewrite`, and Caddy proxies the WebSocket upgrade automatically.
+
 ### gRPC (HTTP/2, `:50051`)
 
 gRPC requires **HTTP/2**. The Sharptown gRPC server is plaintext (`createInsecure`), so the
