@@ -1,8 +1,26 @@
 <script setup>
 import { computed, reactive, ref, shallowRef } from 'vue'
 import { sharptown, SharptownError, SUPPORTED_FORMATS } from '@sharptown/client'
+import { ImageDelivery, provideSharptownClient } from '@sharptown/vue'
 
 const baseUrl = ref('http://localhost:3001')
+
+provideSharptownClient(sharptown(baseUrl.value, { proxySecret: 'dev-secret-change-me' }))
+
+const delivery = reactive({
+  source: 'https://picsum.photos/800/600',
+  width: 320,
+  blur: 0,
+})
+const deliveryStatus = ref('idle')
+
+function onDeliveryLoad() {
+  deliveryStatus.value = 'loaded'
+}
+
+function onDeliveryError() {
+  deliveryStatus.value = 'error'
+}
 
 const file = shallowRef(null)
 const originalUrl = ref('')
@@ -203,6 +221,35 @@ const prettySize = computed(() => {
     <section class="panel">
       <figcaption>Equivalent client code</figcaption>
       <pre class="code">{{ codePreview }}</pre>
+    </section>
+
+    <section class="panel">
+      <figcaption>Signed delivery · &lt;ImageDelivery&gt; from <code>@sharptown/vue</code></figcaption>
+      <div class="grid">
+        <label class="field">
+          <span>Source URL</span>
+          <input v-model="delivery.source" type="url" placeholder="https://…" />
+        </label>
+        <label class="field">
+          <span>Width</span>
+          <input v-model.number="delivery.width" type="number" min="0" />
+        </label>
+        <label class="field">
+          <span>Blur</span>
+          <input v-model.number="delivery.blur" type="number" min="0" />
+        </label>
+      </div>
+      <figure>
+        <ImageDelivery
+          :src="delivery.source"
+          :width="delivery.width || undefined"
+          :blur="delivery.blur || undefined"
+          alt="Signed delivery preview"
+          @load="onDeliveryLoad"
+          @error="onDeliveryError"
+        />
+      </figure>
+      <p>Status: <strong>{{ deliveryStatus }}</strong> · requires the server running with <code>SHARPTOWN_PROXY_KEY=dev-secret-change-me</code></p>
     </section>
   </main>
 </template>

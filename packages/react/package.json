@@ -1,0 +1,53 @@
+{
+  "name": "@sharptown/react",
+  "version": "1.0.0",
+  "description": "React bindings for Sharptown: a single-<img> <ImageDelivery> component that builds signed image-transform URLs.",
+  "type": "module",
+  "main": "./src/index.mjs",
+  "module": "./src/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./src/index.mjs",
+      "default": "./src/index.mjs"
+    }
+  },
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "sharptown",
+    "react",
+    "image",
+    "img",
+    "component",
+    "transform",
+    "resize"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/e1berd/sharptown.git",
+    "directory": "packages/react"
+  },
+  "peerDependencies": {
+    "@sharptown/client": ">=1.2.0",
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@sharptown/client": "workspace:*",
+    "@types/react": "^18.3.0",
+    "react": "^18.3.0",
+    "typescript": "^5.5.0"
+  }
+}

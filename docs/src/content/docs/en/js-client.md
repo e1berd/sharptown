@@ -13,6 +13,8 @@ transport interface so other transports can be added later.
 
 It is the only client published to npm. Prefer another language? See the
 [PHP](/docs/php-client), [Go](/docs/go-client) and [Elixir](/docs/elixir-client) clients.
+Building a UI? The [frontend components](/docs/frontend-components) wrap this client for Vue,
+React, Svelte and Astro.
 
 ## Create a client
 

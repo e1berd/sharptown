@@ -13,6 +13,8 @@ order: 1
 
 Это единственный клиент, опубликованный в npm. Нужен другой язык? См. клиенты на
 [PHP](/ru/docs/php-client), [Go](/ru/docs/go-client) и [Elixir](/ru/docs/elixir-client).
+Делаете UI? [Фронтенд-компоненты](/ru/docs/frontend-components) оборачивают этот клиент для
+Vue, React, Svelte и Astro.
 
 ## Создание клиента
 

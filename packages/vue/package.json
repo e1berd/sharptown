@@ -1,0 +1,52 @@
+{
+  "name": "@sharptown/vue",
+  "version": "1.0.0",
+  "description": "Vue 3 bindings for Sharptown: a single-<img> <ImageDelivery> component that builds signed image-transform URLs.",
+  "type": "module",
+  "main": "./src/index.mjs",
+  "module": "./src/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./src/index.mjs",
+      "default": "./src/index.mjs"
+    }
+  },
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "sharptown",
+    "vue",
+    "image",
+    "img",
+    "component",
+    "transform",
+    "resize"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/e1berd/sharptown.git",
+    "directory": "packages/vue"
+  },
+  "peerDependencies": {
+    "@sharptown/client": ">=1.2.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@sharptown/client": "workspace:*",
+    "typescript": "^5.5.0",
+    "vue": "^3.5.0"
+  }
+}

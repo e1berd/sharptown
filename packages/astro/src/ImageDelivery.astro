@@ -1,0 +1,14 @@
+---
+import { pickOperations } from '@sharptown/client'
+import type { Operations } from '@sharptown/client'
+import type { HTMLAttributes } from 'astro/types'
+import { getSharptownClient } from './context.js'
+
+type Props = Omit<HTMLAttributes<'img'>, 'src'> & Operations & { src: string }
+
+const { src, ...rest } = Astro.props
+const { operations, rest: imgProps } = pickOperations(rest)
+const href = await getSharptownClient().signedUrl(src, operations)
+---
+
+<img {...imgProps} width={operations.width} height={operations.height} src={href} />

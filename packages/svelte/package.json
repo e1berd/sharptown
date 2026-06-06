@@ -1,0 +1,50 @@
+{
+  "name": "@sharptown/svelte",
+  "version": "1.0.0",
+  "description": "Svelte 5 bindings for Sharptown: a single-<img> <ImageDelivery> component that builds signed image-transform URLs.",
+  "type": "module",
+  "svelte": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "svelte": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./ImageDelivery.svelte": {
+      "svelte": "./src/ImageDelivery.svelte",
+      "default": "./src/ImageDelivery.svelte"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "sharptown",
+    "svelte",
+    "image",
+    "img",
+    "component",
+    "transform",
+    "resize"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/e1berd/sharptown.git",
+    "directory": "packages/svelte"
+  },
+  "peerDependencies": {
+    "@sharptown/client": ">=1.2.0",
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "@sharptown/client": "workspace:*",
+    "svelte": "^5.0.0"
+  }
+}

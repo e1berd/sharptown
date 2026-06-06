@@ -11,10 +11,16 @@
  * const webp = await st.transform(file).resize(800).convert('webp')
  */
 
+/**
+ * Transform operations accepted by {@link SharptownClient#signedUrl} and the framework
+ * `<ImageDelivery>` components. Re-exported so consumers can type their own props.
+ * @typedef {import('./operations.mjs').Operations} Operations
+ */
+
 export { sharptown, SharptownClient } from './client.mjs'
 export { TransformBuilder } from './transform-builder.mjs'
 export { Watermark, Textmark } from './watermark.mjs'
 export { rest } from './transports/rest.mjs'
 export { buildProxyUrl } from './proxy.mjs'
 export { SharptownError } from './errors.mjs'
-export { SUPPORTED_FORMATS, FIT_MODES } from './operations.mjs'
+export { SUPPORTED_FORMATS, FIT_MODES, OPERATION_KEYS, pickOperations } from './operations.mjs'

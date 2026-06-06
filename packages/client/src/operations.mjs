@@ -60,6 +60,47 @@ export const FIT_MODES = Object.freeze([
  */
 
 /**
+ * Every operation key understood by {@link toSearchParams}, in the same order. This is the
+ * single source of truth UI-framework packages (`@sharptown/vue`, `@sharptown/react`, …) use
+ * to split component props into transform operations and pass-through `<img>` attributes.
+ * @type {readonly (keyof Operations)[]}
+ */
+export const OPERATION_KEYS = Object.freeze([
+  'width', 'height', 'dpr', 'aspectRatio', 'fit', 'background', 'smartCrop', 'crop',
+  'cropOffset', 'trim', 'chromaKey', 'composite', 'autoOrient', 'rotate', 'flip', 'blur',
+  'sharpen', 'oilPaint', 'brightness', 'contrast', 'saturation', 'exposure', 'hue', 'gamma',
+  'colorize', 'sepia', 'invert', 'threshold', 'r', 'g', 'b', 'grayscale', 'removeAlpha',
+  'ensureAlpha', 'convertTo', 'quality', 'progressive', 'stripMetadata',
+])
+
+/**
+ * Splits a flat props object into Sharptown transform {@link Operations} and the remaining
+ * keys. A key listed in {@link OPERATION_KEYS} whose value is not `undefined` becomes an
+ * operation; everything else goes to `rest` (typically spread onto an `<img>` element). The
+ * `src` key, if present, is left in `rest` — components handle the source separately.
+ * @param {Record<string, unknown>} source
+ * @returns {{ operations: Operations, rest: Record<string, unknown> }}
+ *
+ * @example
+ * pickOperations({ width: 800, blur: 2, alt: 'photo', onLoad: fn })
+ * // => { operations: { width: 800, blur: 2 }, rest: { alt: 'photo', onLoad: fn } }
+ */
+export function pickOperations(source) {
+  /** @type {Operations} */
+  const operations = {}
+  /** @type {Record<string, unknown>} */
+  const rest = {}
+  for (const key of Object.keys(source)) {
+    if (source[key] !== undefined && OPERATION_KEYS.includes(/** @type {keyof Operations} */ (key))) {
+      operations[key] = source[key]
+    } else {
+      rest[key] = source[key]
+    }
+  }
+  return { operations, rest }
+}
+
+/**
  * Coerces a value to an integer, throwing a clear error on invalid input.
  * @param {unknown} value
  * @param {string} field
