@@ -36,7 +36,7 @@ final class RestTransport implements Transport
         $resolved = $request->input->resolve($http);
         $filename = $request->filename ?? $resolved['filename'];
 
-        [$body, $contentType] = $this->multipart($filename, $resolved['contentType'], $resolved['bytes']);
+        [$body, $contentType] = $this->multipart($filename, $resolved['contentType'], $resolved['bytes'], $request->attachments);
         $url = $this->endpoint($request->baseUrl, Operations::toQuery($request->operations));
 
         $headers = $request->headers;
@@ -65,9 +65,10 @@ final class RestTransport implements Transport
     }
 
     /**
+     * @param list<string> $attachments
      * @return array{0: string, 1: string}
      */
-    private function multipart(string $filename, string $contentType, string $bytes): array
+    private function multipart(string $filename, string $contentType, string $bytes, array $attachments = []): array
     {
         $boundary = '----SharptownBoundary' . bin2hex(random_bytes(16));
         $name = str_replace(['"', "\r", "\n"], '', $filename);
@@ -76,8 +77,16 @@ final class RestTransport implements Transport
         $body = '--' . $boundary . $eol
             . 'Content-Disposition: form-data; name="' . $this->field . '"; filename="' . $name . '"' . $eol
             . 'Content-Type: ' . $contentType . $eol . $eol
-            . $bytes . $eol
-            . '--' . $boundary . '--' . $eol;
+            . $bytes . $eol;
+
+        foreach ($attachments as $index => $overlay) {
+            $body .= '--' . $boundary . $eol
+                . 'Content-Disposition: form-data; name="watermark"; filename="watermark-' . $index . '"' . $eol
+                . 'Content-Type: application/octet-stream' . $eol . $eol
+                . $overlay . $eol;
+        }
+
+        $body .= '--' . $boundary . '--' . $eol;
 
         return [$body, 'multipart/form-data; boundary=' . $boundary];
     }

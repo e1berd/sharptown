@@ -27,6 +27,9 @@ final class TransformBuilder
     /** @var array<string, mixed> */
     private array $ops = [];
 
+    /** @var list<CompositeMark> */
+    private array $marks = [];
+
     /**
      * @param array<string, string> $headers
      */
@@ -332,6 +335,36 @@ final class TransformBuilder
     }
 
     /**
+     * Trims uniform edges. Pass no argument for the default threshold, or a `1`–`255`
+     * threshold (higher trims more aggressively).
+     */
+    public function trim(?int $threshold = null): static
+    {
+        $this->ops['trim'] = $threshold === null ? true : Operations::toInt($threshold, 'trim');
+        return $this;
+    }
+
+    /**
+     * Makes a colour transparent (chroma key). Pass the colour (`#rrggbb`, `r,g,b` or a name)
+     * and an optional tolerance percentage (`0`–`100`, default `12`). Applied on the server.
+     */
+    public function chromaKey(string $color, ?int $tolerance = null): static
+    {
+        $this->ops['chromaKey'] = $tolerance === null ? $color : $color . ';' . $tolerance;
+        return $this;
+    }
+
+    /**
+     * Overlays a {@link Watermark} (image) or {@link Textmark} (text) onto the result. Call
+     * it more than once to stack overlays; they are composited in order.
+     */
+    public function composite(CompositeMark $mark): static
+    {
+        $this->marks[] = $mark;
+        return $this;
+    }
+
+    /**
      * Returns the canonical operation set accumulated so far.
      *
      * @return array<string, mixed>
@@ -346,13 +379,29 @@ final class TransformBuilder
      */
     public function response(): Response
     {
+        $ops = $this->ops;
+        $attachments = [];
+        if ($this->marks !== []) {
+            $specs = [];
+            foreach ($this->marks as $mark) {
+                ['spec' => $spec, 'bytes' => $bytes] = $mark->resolve();
+                if ($bytes !== null) {
+                    $spec['ref'] = count($attachments);
+                    $attachments[] = $bytes;
+                }
+                $specs[] = $spec;
+            }
+            $ops['composite'] = json_encode($specs, JSON_THROW_ON_ERROR);
+        }
+
         return $this->transport->transform(new TransformRequest(
             $this->baseUrl,
             $this->headers,
             $this->input,
             $this->filename,
-            $this->ops,
+            $ops,
             $this->timeout,
+            $attachments,
         ));
     }
 

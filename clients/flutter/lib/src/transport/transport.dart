@@ -13,6 +13,7 @@ class TransformRequest {
     required this.operations,
     required this.timeout,
     required this.httpClient,
+    this.attachments = const [],
   });
 
   /// The server base URL, matching the chosen transport.
@@ -32,6 +33,9 @@ class TransformRequest {
 
   /// The HTTP client used by the REST transport and for [ImageInput.url] sources.
   final http.Client httpClient;
+
+  /// Binary watermark overlays uploaded as `watermark` fields.
+  final List<List<int>> attachments;
 }
 
 /// Speaks one of the Sharptown protocols. Each implementation accepts the same

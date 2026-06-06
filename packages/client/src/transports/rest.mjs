@@ -11,6 +11,7 @@ import { toSearchParams } from '../operations.mjs'
  * @property {string} [filename]
  * @property {AbortSignal} [signal]
  * @property {import('../operations.mjs').Operations} operations
+ * @property {Blob[]} [attachments] Binary watermark overlays uploaded as `watermark` fields.
  */
 
 /**
@@ -38,11 +39,15 @@ export function rest(options = {}) {
 
   return {
     name: 'rest',
-    async transform({ baseUrl, fetchImpl, headers, input, filename, signal, operations }) {
+    async transform({ baseUrl, fetchImpl, headers, input, filename, signal, operations, attachments }) {
       const { blob, filename: detectedName } = await normalizeInput(input, filename || 'image')
 
       const form = new FormData()
       form.append(field, blob, filename || detectedName)
+
+      if (Array.isArray(attachments)) {
+        attachments.forEach((overlay, index) => form.append('watermark', overlay, `watermark-${index}`))
+      }
 
       const endpoint = resolveEndpoint(baseUrl, path, toSearchParams(operations))
       const request = new Request(endpoint, {

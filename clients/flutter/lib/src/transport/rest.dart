@@ -36,6 +36,14 @@ class RestTransport implements Transport {
         filename: resolved.filename,
       ));
 
+    for (var i = 0; i < request.attachments.length; i++) {
+      multipart.files.add(http.MultipartFile.fromBytes(
+        'watermark',
+        request.attachments[i],
+        filename: 'watermark-$i',
+      ));
+    }
+
     final http.Response response;
     try {
       final streamed =

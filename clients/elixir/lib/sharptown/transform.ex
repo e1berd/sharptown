@@ -5,12 +5,13 @@ defmodule Sharptown.Transform do
   """
 
   @enforce_keys [:client, :input]
-  defstruct [:client, :input, :filename, ops: %{}]
+  defstruct [:client, :input, :filename, ops: %{}, marks: []]
 
   @type t :: %__MODULE__{
           client: Sharptown.Client.t(),
           input: Sharptown.Input.t(),
           filename: String.t() | nil,
-          ops: %{String.t() => term()}
+          ops: %{String.t() => term()},
+          marks: list()
         }
 end

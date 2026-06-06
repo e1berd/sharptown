@@ -13,10 +13,10 @@ defmodule Sharptown.Operations do
   @fit_modes ~w(cover contain fill inside outside)
 
   @order ~w(
-    width height dpr aspectRatio fit background smartCrop crop cropOffset autoOrient
-    rotate flip blur sharpen oilPaint brightness contrast saturation exposure hue gamma
-    colorize sepia invert threshold r g b grayscale removeAlpha ensureAlpha convertTo
-    quality progressive stripMetadata
+    width height dpr aspectRatio fit background smartCrop crop cropOffset trim chromaKey
+    composite autoOrient rotate flip blur sharpen oilPaint brightness contrast saturation
+    exposure hue gamma colorize sepia invert threshold r g b grayscale removeAlpha
+    ensureAlpha convertTo quality progressive stripMetadata
   )
 
   @doc "Output formats supported by the server."

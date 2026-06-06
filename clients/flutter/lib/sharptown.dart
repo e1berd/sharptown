@@ -22,6 +22,7 @@ export 'src/input.dart';
 export 'src/operations.dart' show Operations;
 export 'src/response.dart';
 export 'src/transform.dart';
+export 'src/watermark.dart' show Watermark, Textmark, CompositeMark;
 export 'src/transport/json_rpc.dart';
 export 'src/transport/rest.dart';
 export 'src/transport/transport.dart';

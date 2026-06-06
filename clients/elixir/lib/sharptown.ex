@@ -259,11 +259,33 @@ defmodule Sharptown do
   @doc "Alias of `convert/2`."
   def to_format(%Transform{} = t, format), do: convert(t, format)
 
+  @doc "Trims uniform edges. Pass no threshold for the default, or a `1`–`255` threshold."
+  def trim(transform, threshold \\ nil)
+  def trim(%Transform{} = t, nil), do: put(t, "trim", true)
+  def trim(%Transform{} = t, threshold), do: put(t, "trim", Operations.to_int(threshold, "trim"))
+
+  @doc """
+  Makes a colour transparent (chroma key). Pass the colour (`"#rrggbb"`, `"r,g,b"` or a
+  name) and an optional tolerance percentage (`0`–`100`, default `12`). Applied on the server.
+  """
+  def chroma_key(transform, color, tolerance \\ nil)
+  def chroma_key(%Transform{} = t, color, nil), do: put(t, "chromaKey", to_string(color))
+
+  def chroma_key(%Transform{} = t, color, tolerance),
+    do: put(t, "chromaKey", "#{color};#{tolerance}")
+
+  @doc """
+  Overlays a `Sharptown.Watermark` (image) or `Sharptown.Textmark` (text) onto the result.
+  Call it more than once to stack overlays; they are composited in order.
+  """
+  def composite(%Transform{marks: marks} = t, mark), do: %{t | marks: marks ++ [mark]}
+
   @doc "Runs the request and returns `{:ok, %Sharptown.Response{}}` or `{:error, %Sharptown.Error{}}`."
   @spec run(Transform.t()) :: {:ok, Response.t()} | {:error, Error.t()}
   def run(%Transform{} = t) do
     with {:ok, {bytes, filename, content_type}} <- Input.resolve(t.input, t.client.timeout) do
       {module, opts} = t.client.transport
+      {operations, attachments} = build_composite(t)
 
       request = %{
         base_url: t.client.base_url,
@@ -272,11 +294,29 @@ defmodule Sharptown do
         filename: t.filename || filename,
         content_type: content_type,
         bytes: bytes,
-        operations: t.ops
+        operations: operations,
+        attachments: attachments
       }
 
       module.transform(request, opts)
     end
+  end
+
+  defp build_composite(%Transform{ops: ops, marks: []}), do: {ops, []}
+
+  defp build_composite(%Transform{ops: ops, marks: marks}) do
+    {specs, attachments} =
+      Enum.reduce(marks, {[], []}, fn mark, {specs, atts} ->
+        {spec, bytes} = mark.__struct__.resolve(mark)
+
+        case bytes do
+          nil -> {[spec | specs], atts}
+          data -> {[Map.put(spec, "ref", length(atts)) | specs], atts ++ [data]}
+        end
+      end)
+
+    composite = specs |> Enum.reverse() |> Sharptown.JSON.encode()
+    {Map.put(ops, "composite", composite), attachments}
   end
 
   @doc "Like `run/1`, but returns the `%Sharptown.Response{}` or raises `Sharptown.Error`."

@@ -41,6 +41,8 @@ export class InvalidOperationError extends Error {
  * @property {boolean|string} [smartCrop] Crop to the most salient region (attention strategy) when resizing.
  * @property {string} [crop] Crop rectangle as `x,y,width,height`, or a size `WxH` paired with `cropOffset`.
  * @property {string} [cropOffset] Offset `x,y` for the `WxH` crop form.
+ * @property {boolean|number|string} [trim] Trim uniform edges; truthy for the default, or a `1`–`255` threshold.
+ * @property {string} [chromaKey] Make a colour transparent: `<color>` or `<color>;<tolerance%>` (REST/buffer only).
  * @property {boolean|string} [autoOrient] Rotate according to the EXIF orientation tag.
  * @property {number|string} [rotate] Rotation in degrees.
  * @property {boolean|string} [flip] Flip horizontally when truthy.
@@ -262,12 +264,26 @@ function resolveModulation(opts) {
  * }).toBuffer()
  */
 export function applyOperations(image, opts = {}) {
+  return applyOutput(applyTransforms(image, opts), opts)
+}
+
+/**
+ * Applies every geometry, colour, filter and resize operation — everything except the final
+ * output encoding (see {@link applyOutput}). Splitting the two lets the buffered REST path
+ * insert buffer-only effects (chroma key, watermark compositing) between the transforms and
+ * the re-encode. This part is streaming-safe.
+ *
+ * @param {import('sharp').Sharp} image
+ * @param {TransformOptions} [opts]
+ * @returns {import('sharp').Sharp}
+ * @throws {InvalidOperationError}
+ */
+export function applyTransforms(image, opts = {}) {
   const {
     width, height, dpr, aspectRatio, fit, background, smartCrop,
-    crop, cropOffset, autoOrient, rotate, flip, blur, sharpen, oilPaint,
+    crop, cropOffset, trim, autoOrient, rotate, flip, blur, sharpen, oilPaint,
     gamma, colorize, sepia, invert, threshold,
     r, g, b, removeAlpha, ensureAlpha,
-    convertTo, quality, progressive, stripMetadata,
   } = opts
   const grayscale = opts.grayscale ?? opts.greyscale
 
@@ -277,6 +293,12 @@ export function applyOperations(image, opts = {}) {
 
   if (crop != null) {
     image = image.extract(parseCrop(crop, cropOffset))
+  }
+
+  if (trim != null && isEnabled(trim)) {
+    image = trim === true || trim === 'true'
+      ? image.trim()
+      : image.trim({ threshold: clamp(toInt(trim, 'trim'), 1, 255) })
   }
 
   if (isEnabled(removeAlpha)) {
@@ -354,6 +376,21 @@ export function applyOperations(image, opts = {}) {
   }
 
   image = applyResize(image, { width, height, dpr, aspectRatio, fit, background, smartCrop })
+
+  return image
+}
+
+/**
+ * Applies the output encoding: format conversion, quality/progressive, and metadata. Runs
+ * last, after any buffer-only effect, so the final bytes carry the requested format.
+ *
+ * @param {import('sharp').Sharp} image
+ * @param {TransformOptions} [opts]
+ * @returns {import('sharp').Sharp}
+ * @throws {InvalidOperationError}
+ */
+export function applyOutput(image, opts = {}) {
+  const { convertTo, quality, progressive, stripMetadata } = opts
 
   if (convertTo) {
     if (!SUPPORTED_FORMATS.includes(convertTo)) {

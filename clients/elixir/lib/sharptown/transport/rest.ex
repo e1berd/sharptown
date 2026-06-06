@@ -13,7 +13,11 @@ defmodule Sharptown.Transport.REST do
     path = Keyword.get(opts, :path, "/api/v1/transform")
     field = Keyword.get(opts, :field, "image")
 
-    {body, content_type} = multipart(field, request.filename, request.content_type, request.bytes)
+    attachments = Map.get(request, :attachments, [])
+
+    {body, content_type} =
+      multipart(field, request.filename, request.content_type, request.bytes, attachments)
+
     url = endpoint(request.base_url, path, Operations.to_query(request.operations))
 
     case HTTP.request(:post, url, request.headers, content_type, body, request.timeout) do
@@ -39,18 +43,31 @@ defmodule Sharptown.Transport.REST do
     %Error{message: message, status: status, body: parsed}
   end
 
-  defp multipart(field, filename, content_type, bytes) do
+  defp multipart(field, filename, content_type, bytes, attachments) do
     boundary =
       "----SharptownBoundary" <> Base.encode16(:crypto.strong_rand_bytes(16), case: :lower)
 
     name = String.replace(filename, ["\"", "\r", "\n"], "")
 
-    body =
+    image_part =
       "--#{boundary}\r\n" <>
         ~s(Content-Disposition: form-data; name="#{field}"; filename="#{name}"\r\n) <>
         "Content-Type: #{content_type}\r\n\r\n" <>
         bytes <>
-        "\r\n--#{boundary}--\r\n"
+        "\r\n"
+
+    overlay_parts =
+      attachments
+      |> Enum.with_index()
+      |> Enum.map_join(fn {data, index} ->
+        "--#{boundary}\r\n" <>
+          ~s(Content-Disposition: form-data; name="watermark"; filename="watermark-#{index}"\r\n) <>
+          "Content-Type: application/octet-stream\r\n\r\n" <>
+          data <>
+          "\r\n"
+      end)
+
+    body = image_part <> overlay_parts <> "--#{boundary}--\r\n"
 
     {body, "multipart/form-data; boundary=#{boundary}"}
   end

@@ -369,6 +369,19 @@ async function fetchSource(url, config) {
 }
 
 /**
+ * Builds a SSRF-guarded image fetcher bound to the proxy config, suitable for resolving
+ * watermark images referenced by URL on any route (the same guard and limits as the proxy).
+ *
+ * @param {ProxyConfig} config
+ * @returns {(url: string) => Promise<Uint8Array>}
+ */
+export function createImageFetcher(config) {
+  return async function fetchImage(url) {
+    return fetchSource(await assertSafeUrl(url, config), config)
+  }
+}
+
+/**
  * Registers `GET {prefix}/fetch`: a signed image proxy that downloads a remote image,
  * applies the same transform options as `POST {prefix}/transform`, and returns the
  * result with long-lived cache headers and an ETag.
@@ -378,6 +391,8 @@ async function fetchSource(url, config) {
  * @param {ProxyConfig} config
  */
 export function registerProxyRoute(app, prefix, config) {
+  const fetchImage = createImageFetcher(config)
+
   app.get(`${prefix}/fetch`, async function fetchRoute(request, reply) {
     try {
       if (!config.key) throw new ProxyError(503, 'Image proxy is disabled')
@@ -389,7 +404,7 @@ export function registerProxyRoute(app, prefix, config) {
       const safeUrl = await assertSafeUrl(url, config)
       const source = await fetchSource(safeUrl, config)
 
-      const { data, contentType } = await transformBuffer(source, options)
+      const { data, contentType } = await transformBuffer(source, options, { fetchImage })
       const etag = `"${toBase64Url(await crypto.subtle.digest('SHA-1', data))}"`
 
       if (request.headers['if-none-match'] === etag) {

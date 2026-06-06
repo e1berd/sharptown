@@ -14,6 +14,7 @@ final class TransformRequest
     /**
      * @param array<string, string> $headers
      * @param array<string, mixed> $operations Canonical operation set (see {@link \Sharptown\Client\Operations}).
+     * @param list<string> $attachments Binary watermark overlays uploaded as `watermark` fields.
      */
     public function __construct(
         public readonly string $baseUrl,
@@ -22,6 +23,7 @@ final class TransformRequest
         public readonly ?string $filename,
         public readonly array $operations,
         public readonly int $timeout,
+        public readonly array $attachments = [],
     ) {
     }
 }

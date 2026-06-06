@@ -14,6 +14,10 @@
  * })
  */
 
-export { applyOperations, InvalidOperationError, SUPPORTED_FORMATS, FIT_MODES } from './operations.mjs'
+export {
+  applyOperations, applyTransforms, applyOutput,
+  InvalidOperationError, SUPPORTED_FORMATS, FIT_MODES,
+} from './operations.mjs'
 export { transformBuffer, createTransformStream } from './transform.mjs'
+export { applyChromaKey, prepareWatermarks, parseCompositeOption } from './effects.mjs'
 export { mimeTypeFor } from './mime.mjs'

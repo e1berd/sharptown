@@ -31,6 +31,9 @@ const OPERATION_ORDER: &[&str] = &[
     "smartCrop",
     "crop",
     "cropOffset",
+    "trim",
+    "chromaKey",
+    "composite",
     "autoOrient",
     "rotate",
     "flip",
@@ -428,6 +431,7 @@ impl Client {
             client: self,
             input,
             ops: Operations::new(),
+            marks: Vec::new(),
             err: None,
         }
     }
@@ -506,6 +510,7 @@ pub struct Transform<'a> {
     client: &'a Client,
     input: Input,
     ops: Operations,
+    marks: Vec<(JsonValue, Option<Vec<u8>>)>,
     err: Option<SharptownError>,
 }
 
@@ -699,13 +704,67 @@ impl<'a> Transform<'a> {
         self.convert(format)
     }
 
-    pub fn response(self) -> Result<Response> {
+    /// Trims uniform edges at the default threshold.
+    pub fn trim(self) -> Self {
+        self.set("trim", OperationValue::Bool(true))
+    }
+
+    /// Trims uniform edges at a 1–255 threshold (higher trims more aggressively).
+    pub fn trim_threshold(self, threshold: i64) -> Self {
+        if !(1..=255).contains(&threshold) {
+            return self.fail(format!("invalid trim: expected 1-255, got {threshold}"));
+        }
+        self.set("trim", OperationValue::Int(threshold))
+    }
+
+    /// Makes a colour transparent (chroma key). The colour is `#rrggbb`, `r,g,b` or a name.
+    /// Applied on the REST server.
+    pub fn chroma_key(self, color: impl Into<String>) -> Self {
+        self.set("chromaKey", OperationValue::String(color.into()))
+    }
+
+    /// Like [`Transform::chroma_key`] with a tolerance percentage (0–100, default 12).
+    pub fn chroma_key_tolerance(self, color: impl Into<String>, tolerance: i64) -> Self {
+        self.set(
+            "chromaKey",
+            OperationValue::String(format!("{};{}", color.into(), tolerance)),
+        )
+    }
+
+    /// Overlays a [`Watermark`] (image) or [`Textmark`] (text) onto the result. Call it more
+    /// than once to stack overlays; they are composited in order. Applied on the REST server.
+    pub fn composite(mut self, mark: impl CompositeMark) -> Self {
+        if self.err.is_none() {
+            self.marks.push(mark.into_overlay());
+        }
+        self
+    }
+
+    pub fn response(mut self) -> Result<Response> {
         if let Some(err) = self.err {
             return Err(err);
         }
+
+        let mut attachments: Vec<Vec<u8>> = Vec::new();
+        if !self.marks.is_empty() {
+            let mut specs: Vec<JsonValue> = Vec::new();
+            for (mut spec, bytes) in std::mem::take(&mut self.marks) {
+                if let Some(data) = bytes {
+                    if let JsonValue::Object(ref mut map) = spec {
+                        map.insert("ref".to_string(), JsonValue::from(attachments.len()));
+                    }
+                    attachments.push(data);
+                }
+                specs.push(spec);
+            }
+            let encoded = serde_json::to_string(&specs)
+                .map_err(|err| SharptownError::new(err.to_string()))?;
+            self.ops.insert("composite".to_string(), OperationValue::String(encoded));
+        }
+
         match &self.client.transport {
             Transport::Rest(transport) => {
-                transform_rest(self.client, transport, self.input, &self.ops)
+                transform_rest(self.client, transport, self.input, &self.ops, &attachments)
             }
             Transport::JsonRpc(transport) => {
                 transform_jsonrpc(self.client, transport, self.input, &self.ops)
@@ -770,11 +829,193 @@ impl<'a> Transform<'a> {
     }
 }
 
+/// An overlay passed to [`Transform::composite`] — a [`Watermark`] (image) or a
+/// [`Textmark`] (text).
+pub trait CompositeMark {
+    /// Resolves the overlay into its wire spec, plus optional bytes to upload.
+    fn into_overlay(self) -> (JsonValue, Option<Vec<u8>>);
+}
+
+/// An image overlay composited onto the result. Build it from a URL the server fetches
+/// ([`Watermark::url`]) or from image bytes uploaded with the request ([`Watermark::bytes`]),
+/// then chain the placement and appearance methods.
+pub struct Watermark {
+    spec: serde_json::Map<String, JsonValue>,
+    bytes: Option<Vec<u8>>,
+}
+
+impl Watermark {
+    /// An image watermark fetched from `url` by the server.
+    pub fn url(url: impl Into<String>) -> Self {
+        let mut spec = serde_json::Map::new();
+        spec.insert("type".to_string(), JsonValue::from("image"));
+        spec.insert("url".to_string(), JsonValue::from(url.into()));
+        Self { spec, bytes: None }
+    }
+
+    /// An image watermark uploaded from raw bytes.
+    pub fn bytes(data: impl Into<Vec<u8>>) -> Self {
+        let mut spec = serde_json::Map::new();
+        spec.insert("type".to_string(), JsonValue::from("image"));
+        Self { spec, bytes: Some(data.into()) }
+    }
+
+    /// Fits the overlay inside `width`×`height`. A non-positive dimension is left unset.
+    pub fn resize(mut self, width: i64, height: i64) -> Self {
+        if width > 0 {
+            self.spec.insert("width".to_string(), JsonValue::from(width));
+        }
+        if height > 0 {
+            self.spec.insert("height".to_string(), JsonValue::from(height));
+        }
+        self
+    }
+
+    /// Sets the overlay width only.
+    pub fn width(mut self, value: i64) -> Self {
+        self.spec.insert("width".to_string(), JsonValue::from(value));
+        self
+    }
+
+    /// Sets the overlay height only.
+    pub fn height(mut self, value: i64) -> Self {
+        self.spec.insert("height".to_string(), JsonValue::from(value));
+        self
+    }
+
+    /// Rotates the overlay by degrees.
+    pub fn rotate(mut self, degrees: i64) -> Self {
+        self.spec.insert("rotate".to_string(), JsonValue::from(degrees));
+        self
+    }
+
+    /// Sets the overlay opacity (0–1).
+    pub fn opacity(mut self, value: f64) -> Self {
+        self.spec.insert("opacity".to_string(), JsonValue::from(value));
+        self
+    }
+
+    /// Sets the placement gravity (default `southeast`).
+    pub fn gravity(mut self, value: impl Into<String>) -> Self {
+        self.spec.insert("gravity".to_string(), JsonValue::from(value.into()));
+        self
+    }
+
+    /// Places the overlay at `(x, y)` from the top-left instead of a gravity.
+    pub fn offset(mut self, x: i64, y: i64) -> Self {
+        self.spec.insert("x".to_string(), JsonValue::from(x));
+        self.spec.insert("y".to_string(), JsonValue::from(y));
+        self
+    }
+
+    /// Repeats the overlay across the whole image.
+    pub fn tile(mut self) -> Self {
+        self.spec.insert("tile".to_string(), JsonValue::from(true));
+        self
+    }
+
+    /// Sets the Sharp blend mode (default `over`).
+    pub fn blend(mut self, mode: impl Into<String>) -> Self {
+        self.spec.insert("blend".to_string(), JsonValue::from(mode.into()));
+        self
+    }
+}
+
+impl CompositeMark for Watermark {
+    fn into_overlay(self) -> (JsonValue, Option<Vec<u8>>) {
+        (JsonValue::Object(self.spec), self.bytes)
+    }
+}
+
+/// A text overlay composited onto the result, rendered server-side. Pass it to
+/// [`Transform::composite`].
+pub struct Textmark {
+    spec: serde_json::Map<String, JsonValue>,
+}
+
+impl Textmark {
+    /// Creates a text watermark.
+    pub fn new(text: impl Into<String>) -> Self {
+        let mut spec = serde_json::Map::new();
+        spec.insert("type".to_string(), JsonValue::from("text"));
+        spec.insert("text".to_string(), JsonValue::from(text.into()));
+        Self { spec }
+    }
+
+    /// Font size in pixels.
+    pub fn size(mut self, value: i64) -> Self {
+        self.spec.insert("size".to_string(), JsonValue::from(value));
+        self
+    }
+
+    /// Text colour (any CSS colour).
+    pub fn color(mut self, value: impl Into<String>) -> Self {
+        self.spec.insert("color".to_string(), JsonValue::from(value.into()));
+        self
+    }
+
+    /// Font family.
+    pub fn font(mut self, value: impl Into<String>) -> Self {
+        self.spec.insert("font".to_string(), JsonValue::from(value.into()));
+        self
+    }
+
+    /// Font weight (e.g. `bold`).
+    pub fn weight(mut self, value: impl Into<String>) -> Self {
+        self.spec.insert("weight".to_string(), JsonValue::from(value.into()));
+        self
+    }
+
+    /// Background colour painted behind the text tile.
+    pub fn background(mut self, value: impl Into<String>) -> Self {
+        self.spec.insert("background".to_string(), JsonValue::from(value.into()));
+        self
+    }
+
+    /// Rotates the text by degrees.
+    pub fn rotate(mut self, degrees: i64) -> Self {
+        self.spec.insert("rotate".to_string(), JsonValue::from(degrees));
+        self
+    }
+
+    /// Text opacity (0–1).
+    pub fn opacity(mut self, value: f64) -> Self {
+        self.spec.insert("opacity".to_string(), JsonValue::from(value));
+        self
+    }
+
+    /// Placement gravity.
+    pub fn gravity(mut self, value: impl Into<String>) -> Self {
+        self.spec.insert("gravity".to_string(), JsonValue::from(value.into()));
+        self
+    }
+
+    /// Places the text at `(x, y)` from the top-left.
+    pub fn offset(mut self, x: i64, y: i64) -> Self {
+        self.spec.insert("x".to_string(), JsonValue::from(x));
+        self.spec.insert("y".to_string(), JsonValue::from(y));
+        self
+    }
+
+    /// Repeats the text across the whole image.
+    pub fn tile(mut self) -> Self {
+        self.spec.insert("tile".to_string(), JsonValue::from(true));
+        self
+    }
+}
+
+impl CompositeMark for Textmark {
+    fn into_overlay(self) -> (JsonValue, Option<Vec<u8>>) {
+        (JsonValue::Object(self.spec), None)
+    }
+}
+
 fn transform_rest(
     client: &Client,
     transport: &RestTransport,
     input: Input,
     ops: &Operations,
+    attachments: &[Vec<u8>],
 ) -> Result<Response> {
     let endpoint = rest_endpoint(&client.base_url, &transport.path, ops);
     let opened = input.open(&client.http)?;
@@ -788,7 +1029,11 @@ fn transform_rest(
 
     // Explicitly opt into streaming readers; reqwest will not pre-read the file into a Vec.
     part = part.headers(reqwest::header::HeaderMap::new());
-    let form = multipart::Form::new().part(transport.field.clone(), part);
+    let mut form = multipart::Form::new().part(transport.field.clone(), part);
+    for (index, data) in attachments.iter().enumerate() {
+        let overlay = multipart::Part::bytes(data.clone()).file_name(format!("watermark-{index}"));
+        form = form.part("watermark", overlay);
+    }
 
     let mut request = client.http.post(endpoint).multipart(form);
     for (key, value) in &client.headers {
@@ -1103,6 +1348,40 @@ mod tests {
             .unwrap();
 
         assert_eq!(sig, "dxkY7R4OWb1R8p6QnS5C7w6QRn30mUgOFEteIGiuYiI");
+    }
+
+    #[test]
+    fn composite_marks_and_effects_serialize() {
+        let (image, image_bytes) = Watermark::url("https://cdn/logo.png")
+            .resize(120, 0)
+            .opacity(0.6)
+            .gravity("southeast")
+            .into_overlay();
+        assert!(image_bytes.is_none());
+        assert_eq!(image["type"], "image");
+        assert_eq!(image["url"], "https://cdn/logo.png");
+        assert_eq!(image["width"], 120);
+        assert_eq!(image["opacity"], 0.6);
+
+        let (upload, upload_bytes) = Watermark::bytes(vec![1u8, 2, 3]).tile().into_overlay();
+        assert_eq!(upload_bytes, Some(vec![1u8, 2, 3]));
+        assert_eq!(upload["tile"], true);
+
+        let (text, text_bytes) = Textmark::new("Hi").size(20).color("white").into_overlay();
+        assert!(text_bytes.is_none());
+        assert_eq!(text["type"], "text");
+        assert_eq!(text["text"], "Hi");
+
+        let client = Client::new("http://localhost:3001");
+        let t = client
+            .transform(Input::bytes(vec![1u8], "in.png"))
+            .trim()
+            .chroma_key_tolerance("#00ff00", 30);
+        assert_eq!(t.operations().get("trim").map(|v| v.query_value()), Some("true".to_string()));
+        assert_eq!(
+            t.operations().get("chromaKey").map(|v| v.query_value()),
+            Some("#00ff00;30".to_string())
+        );
     }
 
     #[test]

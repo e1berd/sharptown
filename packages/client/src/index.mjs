@@ -13,6 +13,7 @@
 
 export { sharptown, SharptownClient } from './client.mjs'
 export { TransformBuilder } from './transform-builder.mjs'
+export { Watermark, Textmark } from './watermark.mjs'
 export { rest } from './transports/rest.mjs'
 export { buildProxyUrl } from './proxy.mjs'
 export { SharptownError } from './errors.mjs'

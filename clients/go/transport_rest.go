@@ -39,6 +39,17 @@ func (t *restTransport) Transform(ctx context.Context, req *Request) (*Response,
 			pw.CloseWithError(cerr)
 			return
 		}
+		for i, data := range req.Attachments {
+			wpart, werr := mw.CreateFormFile("watermark", fmt.Sprintf("watermark-%d", i))
+			if werr != nil {
+				pw.CloseWithError(werr)
+				return
+			}
+			if _, werr := wpart.Write(data); werr != nil {
+				pw.CloseWithError(werr)
+				return
+			}
+		}
 		if cerr := mw.Close(); cerr != nil {
 			pw.CloseWithError(cerr)
 			return

@@ -22,7 +22,7 @@ final class Operations
     /** Canonical option order, matching the JS client's query serialization. */
     public const ORDER = [
         'width', 'height', 'dpr', 'aspectRatio', 'fit', 'background', 'smartCrop',
-        'crop', 'cropOffset', 'autoOrient', 'rotate', 'flip', 'blur', 'sharpen',
+        'crop', 'cropOffset', 'trim', 'chromaKey', 'composite', 'autoOrient', 'rotate', 'flip', 'blur', 'sharpen',
         'oilPaint', 'brightness', 'contrast', 'saturation', 'exposure', 'hue', 'gamma',
         'colorize', 'sepia', 'invert', 'threshold', 'r', 'g', 'b', 'grayscale',
         'removeAlpha', 'ensureAlpha', 'convertTo', 'quality', 'progressive', 'stripMetadata',

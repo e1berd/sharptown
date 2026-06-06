@@ -2,6 +2,7 @@ package sharptown
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,6 +15,7 @@ type Transform struct {
 	client *Client
 	input  Input
 	ops    map[string]any
+	marks  []CompositeMark
 	err    error
 }
 
@@ -22,6 +24,34 @@ func (t *Transform) Operations() map[string]any { return t.ops }
 
 // Err returns the first validation error captured, if any.
 func (t *Transform) Err() error { return t.err }
+
+// Trim trims uniform edges. Pass no argument for the default threshold, or a single 1–255
+// threshold (higher trims more aggressively).
+func (t *Transform) Trim(threshold ...int) *Transform {
+	if len(threshold) == 0 {
+		return t.set("trim", true)
+	}
+	return t.putIntRange("trim", threshold[0], "trim", 1, 255)
+}
+
+// ChromaKey makes a colour transparent. Pass the colour ("#rrggbb", "r,g,b" or a name) and
+// an optional tolerance percentage (0–100, default 12). Applied on the REST server.
+func (t *Transform) ChromaKey(color string, tolerance ...int) *Transform {
+	if len(tolerance) == 0 {
+		return t.set("chromaKey", color)
+	}
+	return t.set("chromaKey", fmt.Sprintf("%s;%d", color, tolerance[0]))
+}
+
+// Composite overlays a Watermark (image) or Textmark (text) onto the result. Call it more
+// than once to stack overlays; they are composited in order. Applied on the REST server.
+func (t *Transform) Composite(mark CompositeMark) *Transform {
+	if mark == nil {
+		return t.fail(fmt.Errorf("Composite: mark is nil"))
+	}
+	t.marks = append(t.marks, mark)
+	return t
+}
 
 // Resize sets the target width and height.
 func (t *Transform) Resize(width, height int) *Transform {
@@ -183,13 +213,33 @@ func (t *Transform) Do(ctx context.Context) (*Response, error) {
 	if t.err != nil {
 		return nil, t.err
 	}
+
+	var attachments [][]byte
+	if len(t.marks) > 0 {
+		specs := make([]map[string]any, 0, len(t.marks))
+		for _, mark := range t.marks {
+			spec, data := mark.resolve()
+			if data != nil {
+				spec["ref"] = len(attachments)
+				attachments = append(attachments, data)
+			}
+			specs = append(specs, spec)
+		}
+		encoded, err := json.Marshal(specs)
+		if err != nil {
+			return nil, &Error{Message: "encoding composite: " + err.Error()}
+		}
+		t.ops["composite"] = string(encoded)
+	}
+
 	req := &Request{
-		BaseURL:    t.client.baseURL,
-		Headers:    t.client.headers,
-		Input:      t.input,
-		Operations: t.ops,
-		Timeout:    t.client.timeout,
-		HTTPClient: t.client.httpClient,
+		BaseURL:     t.client.baseURL,
+		Headers:     t.client.headers,
+		Input:       t.input,
+		Operations:  t.ops,
+		Attachments: attachments,
+		Timeout:     t.client.timeout,
+		HTTPClient:  t.client.httpClient,
 	}
 	if t.client.timeout > 0 {
 		var cancel context.CancelFunc

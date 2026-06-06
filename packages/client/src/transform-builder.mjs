@@ -1,3 +1,4 @@
+import { SharptownError } from './errors.mjs'
 import {
   toInt,
   toNumber,
@@ -39,6 +40,8 @@ export class TransformBuilder {
   #ctx
   /** @type {import('./operations.mjs').Operations} */
   #ops = {}
+  /** @type {Array<{ resolve(): { spec: object, blob?: Blob } }>} */
+  #marks = []
 
   /** @param {BuilderContext} ctx */
   constructor(ctx) {
@@ -105,6 +108,57 @@ export class TransformBuilder {
       toPositiveInt(width, 'crop.width'),
       toPositiveInt(height, 'crop.height'),
     ].join(',')
+    return this
+  }
+
+  /**
+   * Trims uniform edges. With no argument trims at the default threshold; otherwise pass a
+   * `1`–`255` threshold (higher trims more aggressively).
+   * @param {number} [threshold]
+   * @returns {this}
+   *
+   * @example
+   * st.transform(file).trim()
+   */
+  trim(threshold) {
+    this.#ops.trim = threshold == null ? true : toPositiveInt(threshold, 'trim')
+    return this
+  }
+
+  /**
+   * Makes a colour transparent (chroma key). Pass the colour and an optional tolerance
+   * percentage (`0`–`100`, default `12`). Buffer-only — applied on the REST server.
+   * @param {string} color A colour: `#rrggbb`, `r,g,b`, or a common name.
+   * @param {number} [tolerance]
+   * @returns {this}
+   *
+   * @example
+   * st.transform(file).chromaKey('#00ff00', 25).convert('png')
+   */
+  chromaKey(color, tolerance) {
+    this.#ops.chromaKey = tolerance == null
+      ? String(color)
+      : `${color};${toRange(tolerance, 'chromaKey tolerance', 0, 100)}`
+    return this
+  }
+
+  /**
+   * Overlays a {@link Watermark} (image) or {@link Textmark} (text) onto the result. Call it
+   * more than once to stack overlays; they are composited in order. Buffer-only — applied on
+   * the REST server.
+   * @param {{ resolve(): { spec: object, blob?: Blob } }} mark
+   * @returns {this}
+   *
+   * @example
+   * st.transform(file)
+   *   .composite(new Watermark(logoFile).resize(120).opacity(0.6))
+   *   .composite(new Textmark('© Acme').size(48).color('white').tile())
+   */
+  composite(mark) {
+    if (!mark || typeof mark.resolve !== 'function') {
+      throw new SharptownError('composite() expects a Watermark or Textmark')
+    }
+    this.#marks.push(mark)
     return this
   }
 
@@ -382,6 +436,21 @@ export class TransformBuilder {
    * console.log(res.headers.get('content-type'))
    */
   response() {
+    const operations = { ...this.#ops }
+    const attachments = []
+    if (this.#marks.length > 0) {
+      const specs = []
+      for (const mark of this.#marks) {
+        const { spec, blob } = mark.resolve()
+        if (blob) {
+          spec.ref = attachments.length
+          attachments.push(blob)
+        }
+        specs.push(spec)
+      }
+      operations.composite = JSON.stringify(specs)
+    }
+
     return this.#ctx.transport.transform({
       baseUrl: this.#ctx.baseUrl,
       fetchImpl: this.#ctx.fetchImpl,
@@ -389,7 +458,8 @@ export class TransformBuilder {
       input: this.#ctx.input,
       filename: this.#ctx.filename,
       signal: this.#ctx.signal,
-      operations: this.#ops,
+      operations,
+      attachments,
     })
   }
 

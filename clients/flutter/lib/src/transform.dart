@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -7,6 +8,7 @@ import 'input.dart';
 import 'operations.dart';
 import 'response.dart';
 import 'transport/transport.dart';
+import 'watermark.dart';
 
 /// A chainable builder for transforming a single image. Every operation method returns
 /// `this`, so calls compose fluently; a terminal ([bytes], [response], [save]) runs the
@@ -47,9 +49,26 @@ class TransformBuilder {
   final http.Client _httpClient;
   final ImageInput _input;
   final Map<String, Object?> _ops = {};
+  final List<CompositeMark> _marks = [];
 
   /// The canonical operation set accumulated so far.
   Map<String, Object?> get operations => Map.unmodifiable(_ops);
+
+  /// Trims uniform edges. Pass no argument for the default threshold, or a 1–255 threshold.
+  TransformBuilder trim([int? threshold]) =>
+      _set('trim', threshold == null ? true : Operations.positiveInt(threshold, 'trim'));
+
+  /// Makes a colour transparent (chroma key). Pass the colour (`#rrggbb`, `r,g,b` or a name)
+  /// and an optional tolerance percentage (0–100, default 12). Applied on the REST server.
+  TransformBuilder chromaKey(String color, [int? tolerance]) =>
+      _set('chromaKey', tolerance == null ? color : '$color;$tolerance');
+
+  /// Overlays a [Watermark] (image) or [Textmark] (text) onto the result. Call it more than
+  /// once to stack overlays; they are composited in order. Applied on the REST server.
+  TransformBuilder composite(CompositeMark mark) {
+    _marks.add(mark);
+    return this;
+  }
 
   /// Sets the target [width] and/or [height].
   TransformBuilder resize([int? width, int? height]) {
@@ -198,13 +217,30 @@ class TransformBuilder {
 
   /// Runs the request and returns the full [TransformResponse].
   Future<TransformResponse> response() {
+    final operations = Map<String, Object?>.of(_ops);
+    final attachments = <List<int>>[];
+    if (_marks.isNotEmpty) {
+      final specs = <Map<String, Object?>>[];
+      for (final mark in _marks) {
+        final resolved = mark.resolve();
+        final spec = resolved.spec;
+        if (resolved.bytes != null) {
+          spec['ref'] = attachments.length;
+          attachments.add(resolved.bytes!);
+        }
+        specs.add(spec);
+      }
+      operations['composite'] = jsonEncode(specs);
+    }
+
     return _transport.transform(TransformRequest(
       baseUrl: _baseUrl,
       headers: _headers,
       input: _input,
-      operations: _ops,
+      operations: operations,
       timeout: _timeout,
       httpClient: _httpClient,
+      attachments: attachments,
     ));
   }
 

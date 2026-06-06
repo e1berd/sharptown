@@ -9,7 +9,7 @@ import (
 // operationOrder is the canonical option order, matching the JS client's serialization.
 var operationOrder = []string{
 	"width", "height", "dpr", "aspectRatio", "fit", "background", "smartCrop",
-	"crop", "cropOffset", "autoOrient", "rotate", "flip", "blur", "sharpen",
+	"crop", "cropOffset", "trim", "chromaKey", "composite", "autoOrient", "rotate", "flip", "blur", "sharpen",
 	"oilPaint", "brightness", "contrast", "saturation", "exposure", "hue", "gamma",
 	"colorize", "sepia", "invert", "threshold", "r", "g", "b", "grayscale",
 	"removeAlpha", "ensureAlpha", "convertTo", "quality", "progressive", "stripMetadata",

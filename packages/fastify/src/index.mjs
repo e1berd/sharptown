@@ -1,9 +1,30 @@
 import fp from 'fastify-plugin'
 import { env } from 'node:process'
 import multipart from '@fastify/multipart'
-import { transformBuffer, InvalidOperationError } from '@sharptown/core'
-import { readFirstFile } from './extract-file.mjs'
-import { registerProxyRoute, resolveProxyConfig } from './proxy.mjs'
+import { transformBuffer, parseCompositeOption, InvalidOperationError } from '@sharptown/core'
+import { readUploads } from './extract-file.mjs'
+import { createImageFetcher, registerProxyRoute, resolveProxyConfig } from './proxy.mjs'
+
+/**
+ * Resolves `composite` specs that reference uploaded watermark files by `ref` index,
+ * replacing each `ref` with the uploaded bytes. Specs using `url`/`text` pass through.
+ *
+ * @param {unknown} raw The raw `composite` option (JSON string or array).
+ * @param {Buffer[]} uploads Watermark files in upload order.
+ * @returns {object[] | undefined}
+ */
+function resolveCompositeUploads(raw, uploads) {
+  const specs = parseCompositeOption(raw)
+  if (specs.length === 0) return undefined
+  for (const spec of specs) {
+    if (spec.ref == null) continue
+    const buffer = uploads[Number(spec.ref)]
+    if (!buffer) throw new InvalidOperationError(`Watermark upload #${spec.ref} is missing`)
+    spec.buffer = buffer
+    delete spec.ref
+  }
+  return specs
+}
 
 /**
  * @typedef {object} SharptownFastifyOptions
@@ -41,16 +62,27 @@ async function sharptownFastify(app, options) {
     app.register(multipart, options.multipart)
   }
 
-  registerProxyRoute(app, prefix, resolveProxyConfig(options.proxy, env))
+  const proxyConfig = resolveProxyConfig(options.proxy, env)
+  const fetchImage = createImageFetcher(proxyConfig)
+
+  registerProxyRoute(app, prefix, proxyConfig)
 
   app.post(`${prefix}/transform`, async function transformRoute(request, reply) {
-    const input = await readFirstFile(request)
-    if (!input) {
+    let uploads
+    try {
+      uploads = await readUploads(request)
+    } catch (error) {
+      request.log.error(error)
+      return reply.code(400).send({ error: 'Invalid multipart upload' })
+    }
+    if (!uploads.image) {
       return reply.code(400).send({ error: 'No file uploaded' })
     }
 
     try {
-      const { data, contentType } = await transformBuffer(input, request.query)
+      const composite = resolveCompositeUploads(request.query.composite, uploads.watermarks)
+      const options = composite ? { ...request.query, composite } : request.query
+      const { data, contentType } = await transformBuffer(uploads.image, options, { fetchImage })
       reply.header('content-type', contentType)
       return data
     } catch (error) {

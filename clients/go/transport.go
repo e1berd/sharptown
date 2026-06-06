@@ -8,12 +8,13 @@ import (
 
 // Request is the canonical, protocol-independent input handed to a Transport.
 type Request struct {
-	BaseURL    string
-	Headers    map[string]string
-	Input      Input
-	Operations map[string]any
-	Timeout    time.Duration
-	HTTPClient *http.Client
+	BaseURL     string
+	Headers     map[string]string
+	Input       Input
+	Operations  map[string]any
+	Attachments [][]byte
+	Timeout     time.Duration
+	HTTPClient  *http.Client
 }
 
 // Transport speaks one of the Sharptown protocols (REST, JSON-RPC, gRPC). Each

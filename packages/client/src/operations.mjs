@@ -28,6 +28,9 @@ export const FIT_MODES = Object.freeze([
  * @property {boolean} [smartCrop]
  * @property {string} [crop]
  * @property {string} [cropOffset]
+ * @property {boolean|number} [trim]
+ * @property {string} [chromaKey]
+ * @property {string} [composite]
  * @property {boolean} [autoOrient]
  * @property {number} [rotate]
  * @property {boolean} [flip]
@@ -185,6 +188,9 @@ export function toSearchParams(ops) {
   setFlag('smartCrop')
   setString('crop')
   setString('cropOffset')
+  setScalar('trim')
+  setString('chromaKey')
+  setString('composite')
   setFlag('autoOrient')
   setNumber('rotate')
   setFlag('flip')
