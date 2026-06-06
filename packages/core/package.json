@@ -1,6 +1,6 @@
 {
   "name": "@sharptown/core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Framework-agnostic image transformation engine for Sharptown, powered by Sharp. Reused by every server adapter (Fastify, Hono, Elysia, Express, gRPC).",
   "type": "module",
   "main": "./src/index.mjs",

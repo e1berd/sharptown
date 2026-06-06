@@ -1,6 +1,6 @@
 {
   "name": "@sharptown/fastify-plugin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Fastify plugin for Sharptown — a single /transform route on top of @sharptown/core.",
   "type": "module",
   "main": "./src/index.mjs",
